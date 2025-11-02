@@ -1,4 +1,4 @@
-# lgb01
+# LoginBonus
 
 Minecraft Bukkitプラグインで、ログインボーナスシステムを実装します。プレイヤーが累積ログイン時間を蓄積し、設定された目標時間に達すると報酬を付与します。
 
@@ -41,7 +41,7 @@ Minecraft Bukkitプラグインで、ログインボーナスシステムを実�
 ## 設定ファイル
 
 ### config.yml
-`plugins/lgb01/config.yml`にあります。報酬、ボスバー設定、その他のプラグインオプションを定義します。
+`plugins/LoginBonus/config.yml`にあります。報酬、ボスバー設定、その他のプラグインオプションを定義します。
 
 例の構造:
 ```yaml
@@ -137,7 +137,7 @@ inventory-full-message: "&cインベントリが満タンです。/rewardclaim �
 ```
 
 ### playerdata.yml
-`plugins/lgb01/playerdata.yml`にあります。プレイヤーデータ（累積時間、ストリーク、最後の報酬）を保存します。手動で編集しないでください。
+`plugins/LoginBonus/playerdata.yml`にあります。プレイヤーデータ（累積時間、ストリーク、最後の報酬）を保存します。手動で編集しないでください。
 
 ## インストール
 
