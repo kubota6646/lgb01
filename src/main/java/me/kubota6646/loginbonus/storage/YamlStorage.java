@@ -101,6 +101,24 @@ public class YamlStorage implements StorageInterface {
         // YAMLストレージは特にクローズ処理不要
     }
     
+    @Override
+    public long getLastSync(UUID playerId) {
+        String key = playerId.toString() + ".lastSync";
+        return playerData.getLong(key, 0L);
+    }
+    
+    @Override
+    public void setLastSync(UUID playerId, long lastSync) {
+        String key = playerId.toString() + ".lastSync";
+        playerData.set(key, lastSync);
+    }
+    
+    @Override
+    public boolean syncPlayerData(UUID playerId) {
+        // YAMLストレージは単一サーバー用のため、同期は不要
+        return false;
+    }
+    
     public FileConfiguration getPlayerData() {
         return playerData;
     }

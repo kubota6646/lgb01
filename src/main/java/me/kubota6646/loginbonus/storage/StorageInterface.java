@@ -76,4 +76,25 @@ public interface StorageInterface {
      * ストレージを閉じる
      */
     void close();
+    
+    /**
+     * プレイヤーの最終同期日時を取得
+     * @param playerId プレイヤーのUUID
+     * @return 最終同期日時（エポックミリ秒）、なければ0
+     */
+    long getLastSync(UUID playerId);
+    
+    /**
+     * プレイヤーの最終同期日時を設定
+     * @param playerId プレイヤーのUUID
+     * @param lastSync 最終同期日時（エポックミリ秒）
+     */
+    void setLastSync(UUID playerId, long lastSync);
+    
+    /**
+     * データベースからプレイヤーデータを同期
+     * @param playerId プレイヤーのUUID
+     * @return データが更新された場合true
+     */
+    boolean syncPlayerData(UUID playerId);
 }

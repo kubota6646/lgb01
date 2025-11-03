@@ -29,7 +29,7 @@ public class Main extends JavaPlugin {
 
         // ストレージを初期化
         String storageType = getConfig().getString("storage-type", "yaml").toLowerCase();
-        if (!storageType.equals("yaml") && !storageType.equals("sqlite")) {
+        if (!storageType.equals("yaml") && !storageType.equals("sqlite") && !storageType.equals("mysql")) {
             getLogger().warning("無効なストレージタイプ: " + storageType + " - デフォルトの 'yaml' を使用します");
             storageType = "yaml";
         }
@@ -68,6 +68,10 @@ public class Main extends JavaPlugin {
         PluginCommand rewardMigrateCmd = getCommand("rewardmigrate");
         if (rewardMigrateCmd != null) {
             rewardMigrateCmd.setExecutor(new RewardMigrateCommand(this));
+        }
+        PluginCommand rewardSyncCmd = getCommand("rewardsync");
+        if (rewardSyncCmd != null) {
+            rewardSyncCmd.setExecutor(new RewardSyncCommand(this));
         }
 
         getLogger().info("lgb01プラグインが有効化されました。");
