@@ -49,13 +49,14 @@ public class SqliteStorage implements StorageInterface {
     }
     
     @Override
-    public double getCumulative(UUID playerId) {
+    public synchronized double getCumulative(UUID playerId) {
         String sql = "SELECT cumulative FROM player_data WHERE uuid = ?";
         try (PreparedStatement pstmt = connection.prepareStatement(sql)) {
             pstmt.setString(1, playerId.toString());
-            ResultSet rs = pstmt.executeQuery();
-            if (rs.next()) {
-                return rs.getDouble("cumulative");
+            try (ResultSet rs = pstmt.executeQuery()) {
+                if (rs.next()) {
+                    return rs.getDouble("cumulative");
+                }
             }
         } catch (SQLException e) {
             plugin.getLogger().severe("累積時間の取得に失敗しました: " + e.getMessage());
@@ -64,7 +65,7 @@ public class SqliteStorage implements StorageInterface {
     }
     
     @Override
-    public void setCumulative(UUID playerId, double cumulative) {
+    public synchronized void setCumulative(UUID playerId, double cumulative) {
         String sql = "INSERT INTO player_data (uuid, cumulative) VALUES (?, ?) " +
                 "ON CONFLICT(uuid) DO UPDATE SET cumulative = ?";
         try (PreparedStatement pstmt = connection.prepareStatement(sql)) {
@@ -78,13 +79,14 @@ public class SqliteStorage implements StorageInterface {
     }
     
     @Override
-    public String getLastReward(UUID playerId) {
+    public synchronized String getLastReward(UUID playerId) {
         String sql = "SELECT last_reward FROM player_data WHERE uuid = ?";
         try (PreparedStatement pstmt = connection.prepareStatement(sql)) {
             pstmt.setString(1, playerId.toString());
-            ResultSet rs = pstmt.executeQuery();
-            if (rs.next()) {
-                return rs.getString("last_reward");
+            try (ResultSet rs = pstmt.executeQuery()) {
+                if (rs.next()) {
+                    return rs.getString("last_reward");
+                }
             }
         } catch (SQLException e) {
             plugin.getLogger().severe("最終報酬日の取得に失敗しました: " + e.getMessage());
@@ -93,7 +95,7 @@ public class SqliteStorage implements StorageInterface {
     }
     
     @Override
-    public void setLastReward(UUID playerId, String lastReward) {
+    public synchronized void setLastReward(UUID playerId, String lastReward) {
         String sql = "INSERT INTO player_data (uuid, last_reward) VALUES (?, ?) " +
                 "ON CONFLICT(uuid) DO UPDATE SET last_reward = ?";
         try (PreparedStatement pstmt = connection.prepareStatement(sql)) {
@@ -107,13 +109,14 @@ public class SqliteStorage implements StorageInterface {
     }
     
     @Override
-    public int getStreak(UUID playerId) {
+    public synchronized int getStreak(UUID playerId) {
         String sql = "SELECT streak FROM player_data WHERE uuid = ?";
         try (PreparedStatement pstmt = connection.prepareStatement(sql)) {
             pstmt.setString(1, playerId.toString());
-            ResultSet rs = pstmt.executeQuery();
-            if (rs.next()) {
-                return rs.getInt("streak");
+            try (ResultSet rs = pstmt.executeQuery()) {
+                if (rs.next()) {
+                    return rs.getInt("streak");
+                }
             }
         } catch (SQLException e) {
             plugin.getLogger().severe("ストリークの取得に失敗しました: " + e.getMessage());
@@ -122,7 +125,7 @@ public class SqliteStorage implements StorageInterface {
     }
     
     @Override
-    public void setStreak(UUID playerId, int streak) {
+    public synchronized void setStreak(UUID playerId, int streak) {
         String sql = "INSERT INTO player_data (uuid, streak) VALUES (?, ?) " +
                 "ON CONFLICT(uuid) DO UPDATE SET streak = ?";
         try (PreparedStatement pstmt = connection.prepareStatement(sql)) {
@@ -136,13 +139,14 @@ public class SqliteStorage implements StorageInterface {
     }
     
     @Override
-    public String getLastStreakDate(UUID playerId) {
+    public synchronized String getLastStreakDate(UUID playerId) {
         String sql = "SELECT last_streak_date FROM player_data WHERE uuid = ?";
         try (PreparedStatement pstmt = connection.prepareStatement(sql)) {
             pstmt.setString(1, playerId.toString());
-            ResultSet rs = pstmt.executeQuery();
-            if (rs.next()) {
-                return rs.getString("last_streak_date");
+            try (ResultSet rs = pstmt.executeQuery()) {
+                if (rs.next()) {
+                    return rs.getString("last_streak_date");
+                }
             }
         } catch (SQLException e) {
             plugin.getLogger().severe("最終ストリーク日の取得に失敗しました: " + e.getMessage());
@@ -151,7 +155,7 @@ public class SqliteStorage implements StorageInterface {
     }
     
     @Override
-    public void setLastStreakDate(UUID playerId, String lastStreakDate) {
+    public synchronized void setLastStreakDate(UUID playerId, String lastStreakDate) {
         String sql = "INSERT INTO player_data (uuid, last_streak_date) VALUES (?, ?) " +
                 "ON CONFLICT(uuid) DO UPDATE SET last_streak_date = ?";
         try (PreparedStatement pstmt = connection.prepareStatement(sql)) {

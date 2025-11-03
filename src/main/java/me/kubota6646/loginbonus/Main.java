@@ -28,7 +28,12 @@ public class Main extends JavaPlugin {
         saveDefaultConfig();
 
         // ストレージを初期化
-        String storageType = getConfig().getString("storage-type", "yaml");
+        String storageType = getConfig().getString("storage-type", "yaml").toLowerCase();
+        if (!storageType.equals("yaml") && !storageType.equals("sqlite")) {
+            getLogger().warning("無効なストレージタイプ: " + storageType + " - デフォルトの 'yaml' を使用します");
+            storageType = "yaml";
+        }
+        getLogger().info("ストレージタイプ: " + storageType);
         storage = StorageFactory.createStorage(this, storageType);
         storage.initialize();
         

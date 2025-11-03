@@ -93,6 +93,10 @@ public record RewardMigrateCommand(Main plugin) implements CommandExecutor {
             } else {
                 // SQLiteから移行する場合は、プレイヤーデータをすべて取得する必要がある
                 // 現在のオンラインプレイヤーのみ移行
+                sender.sendMessage(ChatColor.RED + "警告: SQLiteからの移行はオンラインプレイヤーのみが対象です！");
+                sender.sendMessage(ChatColor.RED + "オフラインプレイヤーのデータは移行されません。");
+                sender.sendMessage(ChatColor.YELLOW + "すべてのプレイヤーを移行するには、全員をオンラインにしてから実行してください。");
+                
                 plugin.getServer().getOnlinePlayers().forEach(player -> {
                     UUID playerId = player.getUniqueId();
                     
@@ -111,7 +115,7 @@ public record RewardMigrateCommand(Main plugin) implements CommandExecutor {
                     }
                 });
                 
-                sender.sendMessage(ChatColor.YELLOW + "注意: SQLiteからの移行はオンラインプレイヤーのみ実行されます。");
+                migratedCount = plugin.getServer().getOnlinePlayers().size();
             }
 
             toStorage.saveAsync().join();
