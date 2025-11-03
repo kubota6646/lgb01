@@ -1,5 +1,8 @@
 package me.kubota6646.loginbonus;
 
+import me.kubota6646.loginbonus.storage.StorageFactory;
+import me.kubota6646.loginbonus.storage.StorageInterface;
+import me.kubota6646.loginbonus.storage.YamlStorage;
 import org.bukkit.command.PluginCommand;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.configuration.file.YamlConfiguration;
@@ -12,6 +15,7 @@ import java.util.concurrent.CompletableFuture;
 
 public class Main extends JavaPlugin {
 
+    private StorageInterface storage;
     private FileConfiguration playerData;
     private File playerDataFile;
     private FileConfiguration messages;
@@ -23,8 +27,15 @@ public class Main extends JavaPlugin {
         // 設定ファイルを保存
         saveDefaultConfig();
 
-        // playerdata.yml を保存
-        saveDefaultPlayerData();
+        // ストレージを初期化
+        String storageType = getConfig().getString("storage-type", "yaml");
+        storage = StorageFactory.createStorage(this, storageType);
+        storage.initialize();
+        
+        // YAMLストレージの場合、playerDataも保持
+        if (storage instanceof YamlStorage) {
+            saveDefaultPlayerData();
+        }
 
         // messages.yml を保存
         saveDefaultMessages();
@@ -54,6 +65,10 @@ public class Main extends JavaPlugin {
         if (rewardResetPlaytimeCmd != null) {
             rewardResetPlaytimeCmd.setExecutor(new RewardResetPlaytimeCommand(this));
         }
+        PluginCommand rewardMigrateCmd = getCommand("rewardmigrate");
+        if (rewardMigrateCmd != null) {
+            rewardMigrateCmd.setExecutor(new RewardMigrateCommand(this));
+        }
 
         getLogger().info("lgb01プラグインが有効化されました。");
     }
@@ -72,28 +87,33 @@ public class Main extends JavaPlugin {
 
         // 非同期でデータを保存
         savePlayerDataAsync();
+        
+        // ストレージを閉じる
+        if (storage != null) {
+            storage.close();
+        }
 
         getLogger().info("lgb01プラグインが無効化されました。");
     }
 
     public void reloadConfig() {
         super.reloadConfig();
-        reloadPlayerData();
+        if (storage instanceof YamlStorage) {
+            reloadPlayerData();
+        }
         reloadMessages();
     }
 
     public FileConfiguration getPlayerData() {
         return playerData;
     }
+    
+    public StorageInterface getStorage() {
+        return storage;
+    }
 
     public void savePlayerDataAsync() {
-        CompletableFuture.runAsync(() -> {
-            try {
-                playerData.save(playerDataFile);
-            } catch (IOException e) {
-                getLogger().severe("playerdata.yml の保存に失敗しました: " + e.getMessage());
-            }
-        });
+        storage.saveAsync();
     }
 
     private void reloadPlayerData() {

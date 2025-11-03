@@ -29,10 +29,8 @@ public record RewardResetPlaytimeCommand(Main plugin) implements CommandExecutor
             return true;
         }
 
-        String playerKey = target.getUniqueId().toString();
-
         // 累積時間をリセット
-        plugin.getPlayerData().set(playerKey + ".cumulative", 0.0);
+        plugin.getStorage().setCumulative(target.getUniqueId(), 0.0);
         plugin.savePlayerDataAsync();
 
         // ボスバーをリセットして新しいカウントを開始

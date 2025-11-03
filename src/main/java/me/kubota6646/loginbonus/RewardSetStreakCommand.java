@@ -43,11 +43,9 @@ public record RewardSetStreakCommand(Main plugin) implements CommandExecutor {
             return true;
         }
 
-        String playerKey = target.getUniqueId().toString();
-
         // ストリークを設定
-        plugin.getPlayerData().set(playerKey + ".streak", streak);
-        plugin.getPlayerData().set(playerKey + ".lastStreakDate", LocalDate.now().toString());
+        plugin.getStorage().setStreak(target.getUniqueId(), streak);
+        plugin.getStorage().setLastStreakDate(target.getUniqueId(), LocalDate.now().toString());
         plugin.savePlayerDataAsync();
 
         sender.sendMessage(ChatColor.GREEN + "プレイヤー '" + playerName + "' のストリークを " + streak + " 日に設定しました。");

@@ -46,14 +46,14 @@ public class EventListener implements Listener {
         currentDates.put(playerId, today);
 
         // 累積ログイン時間を取得 (デフォルト0.0)
-        double cumulativeMinutes = plugin.getPlayerData().getDouble(playerKey + ".cumulative", 0.0);
+        double cumulativeMinutes = plugin.getStorage().getCumulative(playerId);
         cumulativeMinutesMap.put(playerId, cumulativeMinutes);
 
         // 目標時間を取得
         int targetMinutes = plugin.getConfig().getInt("reward-time", 30);
 
         // 既に達成済みか確認
-        String lastReward = plugin.getPlayerData().getString(playerKey + ".lastReward");
+        String lastReward = plugin.getStorage().getLastReward(playerId);
         boolean alreadyRewarded = today.equals(lastReward);
 
         if (alreadyRewarded) {
@@ -97,7 +97,7 @@ public class EventListener implements Listener {
                     // 日付が変わったので、新しいカウントを開始
                     currentDates.put(playerId, currentDate);
                     // 累積時間を0にリセット
-                    plugin.getPlayerData().set(playerKey + ".cumulative", 0.0);
+                    plugin.getStorage().setCumulative(playerId, 0.0);
                     plugin.savePlayerDataAsync();
                     cumulativeMinutesMap.put(playerId, 0.0);
                     // ボスバーを更新
@@ -154,10 +154,9 @@ public class EventListener implements Listener {
         long start = loginStart;
         long currentTime = System.currentTimeMillis();
         double additionalMinutes = (currentTime - start) / 60000.0;
-        String playerKey = playerId.toString();
-        double savedCumulative = plugin.getPlayerData().getDouble(playerKey + ".cumulative", 0.0);
+        double savedCumulative = plugin.getStorage().getCumulative(playerId);
         double newCumulative = savedCumulative + additionalMinutes;
-        plugin.getPlayerData().set(playerKey + ".cumulative", newCumulative);
+        plugin.getStorage().setCumulative(playerId, newCumulative);
         plugin.savePlayerDataAsync();
     }
 
@@ -166,20 +165,20 @@ public class EventListener implements Listener {
         String playerKey = playerId.toString();
 
         // ストリークを取得
-        int streak = plugin.getPlayerData().getInt(playerKey + ".streak", 1);
+        int streak = plugin.getStorage().getStreak(playerId);
 
         if (updateStreak && plugin.getConfig().getBoolean("streak-enabled", true)) {
             // ストリークを計算
-            String lastStreakDateStr = plugin.getPlayerData().getString(playerKey + ".lastStreakDate");
+            String lastStreakDateStr = plugin.getStorage().getLastStreakDate(playerId);
             if (lastStreakDateStr != null) {
                 LocalDate lastStreakDate = LocalDate.parse(lastStreakDateStr);
                 LocalDate yesterday = LocalDate.now().minusDays(1);
                 if (lastStreakDate.equals(yesterday)) {
-                    streak = plugin.getPlayerData().getInt(playerKey + ".streak", 1) + 1;
+                    streak = plugin.getStorage().getStreak(playerId) + 1;
                 }
             }
-            plugin.getPlayerData().set(playerKey + ".streak", streak);
-            plugin.getPlayerData().set(playerKey + ".lastStreakDate", today);
+            plugin.getStorage().setStreak(playerId, streak);
+            plugin.getStorage().setLastStreakDate(playerId, today);
         }
 
         // 基本報酬を与える
@@ -233,7 +232,7 @@ public class EventListener implements Listener {
 
         // 受け取り状況を記録
         if (setLastReward) {
-            plugin.getPlayerData().set(playerKey + ".lastReward", today);
+            plugin.getStorage().setLastReward(playerId, today);
             plugin.savePlayerDataAsync();
         }
 
@@ -332,7 +331,7 @@ public class EventListener implements Listener {
         int targetMinutes = plugin.getConfig().getInt("reward-time", 30);
 
         // 既に達成済みか確認
-        String lastReward = plugin.getPlayerData().getString(playerKey + ".lastReward");
+        String lastReward = plugin.getStorage().getLastReward(playerId);
         boolean alreadyRewarded = today.equals(lastReward);
 
         if (alreadyRewarded) {
@@ -375,7 +374,7 @@ public class EventListener implements Listener {
                     // 日付が変わったので、新しいカウントを開始
                     currentDates.put(playerId, currentDate);
                     // 累積時間を0にリセット
-                    plugin.getPlayerData().set(playerKey + ".cumulative", 0.0);
+                    plugin.getStorage().setCumulative(playerId, 0.0);
                     plugin.savePlayerDataAsync();
                     cumulativeMinutesMap.put(playerId, 0.0);
                     // ボスバーを更新
