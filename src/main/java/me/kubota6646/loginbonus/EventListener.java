@@ -314,8 +314,8 @@ public class EventListener implements Listener {
         String today = LocalDate.now().toString();
         currentDates.put(playerId, today);
 
-        // 累積時間を取得 (リセット後なので0)
-        double cumulativeMinutes = 0.0;
+        // 累積時間をストレージから取得
+        double cumulativeMinutes = plugin.getStorage().getCumulative(playerId);
         cumulativeMinutesMap.put(playerId, cumulativeMinutes);
 
         // 目標時間を取得

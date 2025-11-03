@@ -29,9 +29,11 @@ public record RewardResetPlaytimeCommand(Main plugin) implements CommandExecutor
             return true;
         }
 
-        // 累積時間をリセット
+        // 累積時間と最終報酬日をリセット
         plugin.getStorage().setCumulative(target.getUniqueId(), 0.0);
-        plugin.savePlayerDataAsync();
+        plugin.getStorage().setLastReward(target.getUniqueId(), null);
+        // 同期的に保存を完了させる
+        plugin.getStorage().saveAsync().join();
 
         // ボスバーをリセットして新しいカウントを開始
         plugin.getEventListener().startTrackingForPlayer(target.getUniqueId());
