@@ -1,6 +1,5 @@
 package me.kubota6646.loginbonus;
 
-import me.kubota6646.loginbonus.storage.SqliteStorage;
 import me.kubota6646.loginbonus.storage.StorageFactory;
 import me.kubota6646.loginbonus.storage.StorageInterface;
 import me.kubota6646.loginbonus.storage.YamlStorage;
@@ -125,7 +124,11 @@ public record RewardMigrateCommand(Main plugin) implements CommandExecutor {
 
         } catch (Exception e) {
             sender.sendMessage(ChatColor.RED + "データ移行中にエラーが発生しました: " + e.getMessage());
-            e.printStackTrace();
+            plugin.getLogger().severe("データ移行中にエラーが発生しました: " + e.getMessage());
+            plugin.getLogger().severe("スタックトレース: " + e.getClass().getName());
+            for (StackTraceElement element : e.getStackTrace()) {
+                plugin.getLogger().severe("  at " + element.toString());
+            }
         } finally {
             fromStorage.close();
             toStorage.close();
