@@ -10,7 +10,21 @@
 # プレイヤーデータの保存方法
 # yaml: YAMLファイルに保存（デフォルト）
 # sqlite: SQLiteデータベースに保存
+# mysql: MySQLデータベースに保存（マルチサーバー対応）
 storage-type: yaml
+
+# MySQL設定（storage-type: mysql の場合のみ使用）
+mysql:
+  host: localhost
+  port: 3306
+  database: loginbonus
+  username: root
+  password: password
+  # 接続プール設定
+  connection-pool:
+    maximum-pool-size: 10
+    minimum-idle: 2
+    connection-timeout: 30000
 
 # ================================
 # 基本設定

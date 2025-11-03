@@ -21,7 +21,8 @@ Minecraft Bukkitプラグインで、ログインボーナスシステムを実�
 - **メッセージカスタマイズ**: `message.yml`で全てのプラグインメッセージをカスタマイズします。
 - **ボスバーカスタマイズ**: ボスバーの色、スタイル、タイトルを設定します。
 - **時間設定**: 目標プレイ時間やその他の時間関連オプションを設定します。
-- **ストレージタイプ**: `config.yml`でデータストレージをYAMLまたはSQLiteデータベースから選択できます。
+- **ストレージタイプ**: `config.yml`でデータストレージをYAML、SQLite、またはMySQLデータベースから選択できます。
+- **マルチサーバー対応**: MySQLストレージを使用することで、複数のサーバー間でプレイヤーデータを共有できます。
 
 ## コマンド
 
@@ -38,6 +39,8 @@ Minecraft Bukkitプラグインで、ログインボーナスシステムを実�
   指定されたプレイヤーのストリークカウントを指定された日数に設定します。最後のストリーク日付はリセットしません。
 - `/rewardresetplaytime <player>`  
   指定されたプレイヤーの累積プレイ時間を0にリセットし、ボスバーを再開始します。
+- `/rewardsync [player]`  
+  データベースからプレイヤーデータを手動で同期します。MySQLストレージでのみ使用可能です。プレイヤー名を省略すると、コマンド実行者自身のデータを同期します。
 
 ## 設定ファイル
 
@@ -160,10 +163,31 @@ already-claimed-message: "&c今日は既に報酬を受け取っています。"
 not-enough-time-message: "&cまだ報酬を受け取る条件を満たしていません。"
 ```
 
-### playerdata.yml / playerdata.db
-YAMLストレージの場合: `plugins/LoginBonus/playerdata.yml`にあります。プレイヤーデータ（累積時間、ストリーク、最後の報酬）を保存します。手動で編集しないでください。
+### playerdata.yml / playerdata.db / MySQL Database
+**YAMLストレージの場合**: `plugins/LoginBonus/playerdata.yml`にあります。プレイヤーデータ（累積時間、ストリーク、最後の報酬）を保存します。手動で編集しないでください。
 
-SQLiteストレージの場合: `plugins/LoginBonus/playerdata.db`にあります。データベース形式でプレイヤーデータを保存します。手動編集は推奨されません。
+**SQLiteストレージの場合**: `plugins/LoginBonus/playerdata.db`にあります。データベース形式でプレイヤーデータを保存します。手動編集は推奨されません。
+
+**MySQLストレージの場合**: 指定されたMySQLデータベースの`player_data`テーブルにプレイヤーデータを保存します。複数のサーバー間でデータを共有できます。
+
+#### MySQL設定例
+```yaml
+storage-type: mysql
+
+mysql:
+  host: localhost        # MySQLサーバーのホスト
+  port: 3306            # MySQLサーバーのポート（デフォルト: 3306）
+  database: loginbonus  # データベース名
+  username: root        # MySQLユーザー名
+  password: password    # MySQLパスワード
+```
+
+**重要**: MySQLを使用する前に、データベースを作成しておく必要があります：
+```sql
+CREATE DATABASE loginbonus CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+```
+
+テーブルは自動的に作成されます。
 
 ## インストール
 
@@ -172,7 +196,26 @@ SQLiteストレージの場合: `plugins/LoginBonus/playerdata.db`にありま�
 3. サーバーを再起動するか、`/reload`を使用します（本番環境では推奨されません）。
 4. 必要に応じてconfig.ymlとmessage.ymlを設定します。
 5. SQLiteストレージを使用する場合、SQLite JDBCドライバがサーバーに利用可能であることを確認してください（プラグインにバンドルされています）。
-6. 設定を変更した場合、`/rewardreload` コマンドを使用するか、再びサーバーを再起動します。
+6. **MySQLストレージを使用する場合**:
+   - MySQLサーバーを準備し、データベースを作成します。
+   - `config.yml`のmysqlセクションに接続情報を設定します。
+   - プラグインが自動的にテーブルを作成します。
+7. 設定を変更した場合、`/rewardreload` コマンドを使用するか、再びサーバーを再起動します。
+
+## マルチサーバー対応
+
+MySQLストレージを使用することで、複数のサーバー間でプレイヤーデータを共有できます。
+
+### 設定方法
+1. 全てのサーバーで同じMySQLデータベースを使用するように`config.yml`を設定します。
+2. 各サーバーで`storage-type: mysql`を設定します。
+3. プレイヤーがログインすると、自動的にデータベースから最新のデータが同期されます。
+4. `/rewardsync`コマンドで手動同期も可能です。
+
+### 同期の仕組み
+- プレイヤーがログインすると、データベースから最新のデータを自動的に読み込みます。
+- データの更新時に`last_sync`タイムスタンプが更新されます。
+- `/rewardsync`コマンドで任意のタイミングで同期できます。
 
 ## パーミッション
 
@@ -182,10 +225,11 @@ SQLiteストレージの場合: `plugins/LoginBonus/playerdata.db`にありま�
 
 ## 互換性
 
-- **Minecraftバージョン**: 1.19.4 (Spigot API 1.19.4-R0.1-SNAPSHOT)
+- **Minecraftバージョン**: 1.19.4+ (Spigot API 1.19.4-R0.1-SNAPSHOT)
 - **Javaバージョン**: 17
 - **Bukkit/Spigot/Paper**: 標準的なBukkit実装と互換。
-- **ストレージ**: YAMLまたはSQLiteデータベース。
+- **ストレージ**: YAML、SQLite、またはMySQLデータベース。
+- **マルチサーバー**: MySQLストレージを使用することで複数サーバー間でデータ共有が可能。
 
 ## 開発
 
