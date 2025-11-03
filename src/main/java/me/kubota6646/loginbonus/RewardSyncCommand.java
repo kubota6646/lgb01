@@ -7,17 +7,12 @@ import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
+import org.jetbrains.annotations.NotNull;
 
-public class RewardSyncCommand implements CommandExecutor {
-    
-    private final Main plugin;
-    
-    public RewardSyncCommand(Main plugin) {
-        this.plugin = plugin;
-    }
+public record RewardSyncCommand(Main plugin) implements CommandExecutor {
     
     @Override
-    public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {
+    public boolean onCommand(@NotNull CommandSender sender, @NotNull Command command, @NotNull String label, @NotNull String[] args) {
         // 権限チェック
         if (!sender.isOp() && !sender.hasPermission("lgb01.admin")) {
             sender.sendMessage(ChatColor.RED + "このコマンドを実行する権限がありません。");
@@ -36,12 +31,11 @@ public class RewardSyncCommand implements CommandExecutor {
         
         // 引数なしの場合は自分自身を同期
         if (args.length == 0) {
-            if (!(sender instanceof Player)) {
+            if (!(sender instanceof Player player)) {
                 sender.sendMessage(ChatColor.RED + "コンソールからはプレイヤー名を指定してください: /rewardsync <player>");
                 return true;
             }
             
-            Player player = (Player) sender;
             syncPlayerData(sender, player, storage);
             return true;
         }
@@ -85,32 +79,30 @@ public class RewardSyncCommand implements CommandExecutor {
                                         !java.util.Objects.equals(oldLastReward, newLastReward);
                     
                     // メインスレッドでメッセージを送信
-                    Bukkit.getScheduler().runTask(plugin, () -> {
-                        if (hasChanges) {
-                            sender.sendMessage(ChatColor.GREEN + target.getName() + " のデータを同期しました。");
-                            sender.sendMessage(ChatColor.GRAY + "累積時間: " + oldCumulative + " → " + newCumulative);
-                            sender.sendMessage(ChatColor.GRAY + "ストリーク: " + oldStreak + " → " + newStreak);
-                            
-                            // プレイヤーがオンラインの場合は通知
-                            if (target.isOnline()) {
-                                target.sendMessage(ChatColor.GREEN + "データが同期されました。");
-                            }
-                        } else {
-                            sender.sendMessage(ChatColor.GREEN + target.getName() + " のデータは既に最新です。");
-                        }
-                    });
+                    Bukkit.getScheduler().runTask(plugin, () -> sendSyncResultMessages(sender, target, hasChanges, oldCumulative, newCumulative, oldStreak, newStreak));
                 } else {
-                    Bukkit.getScheduler().runTask(plugin, () -> {
-                        sender.sendMessage(ChatColor.RED + "データの同期に失敗しました。");
-                    });
+                    Bukkit.getScheduler().runTask(plugin, () -> sender.sendMessage(ChatColor.RED + "データの同期に失敗しました。"));
                 }
             } catch (Exception e) {
                 plugin.getLogger().severe("データ同期中にエラーが発生しました: " + e.getMessage());
-                e.printStackTrace();
-                Bukkit.getScheduler().runTask(plugin, () -> {
-                    sender.sendMessage(ChatColor.RED + "データの同期中にエラーが発生しました。");
-                });
+                plugin.getLogger().severe("スタックトレース: " + java.util.Arrays.toString(e.getStackTrace()));
+                Bukkit.getScheduler().runTask(plugin, () -> sender.sendMessage(ChatColor.RED + "データの同期中にエラーが発生しました。"));
             }
         });
+    }
+    
+    private void sendSyncResultMessages(CommandSender sender, Player target, boolean hasChanges, double oldCumulative, double newCumulative, int oldStreak, int newStreak) {
+        if (hasChanges) {
+            sender.sendMessage(ChatColor.GREEN + target.getName() + " のデータを同期しました。");
+            sender.sendMessage(ChatColor.GRAY + "累積時間: " + oldCumulative + " → " + newCumulative);
+            sender.sendMessage(ChatColor.GRAY + "ストリーク: " + oldStreak + " → " + newStreak);
+            
+            // プレイヤーがオンラインの場合は通知
+            if (target.isOnline()) {
+                target.sendMessage(ChatColor.GREEN + "データが同期されました。");
+            }
+        } else {
+            sender.sendMessage(ChatColor.GREEN + target.getName() + " のデータは既に最新です。");
+        }
     }
 }
