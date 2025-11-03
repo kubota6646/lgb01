@@ -1,5 +1,8 @@
 package me.kubota6646.loginbonus;
 
+import me.kubota6646.loginbonus.storage.StorageFactory;
+import me.kubota6646.loginbonus.storage.StorageInterface;
+import me.kubota6646.loginbonus.storage.YamlStorage;
 import org.bukkit.command.PluginCommand;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.configuration.file.YamlConfiguration;
@@ -8,23 +11,31 @@ import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.StandardCopyOption;
-import java.util.concurrent.CompletableFuture;
 
 public class Main extends JavaPlugin {
 
-    private FileConfiguration playerData;
-    private File playerDataFile;
+    private StorageInterface storage;
     private FileConfiguration messages;
     private File messagesFile;
     private EventListener eventListener;
 
     @Override
     public void onEnable() {
+        // messages.yml を初期化（saveDefaultConfig前に必要）
+        messagesFile = new File(getDataFolder(), "message.yml");
+        
         // 設定ファイルを保存
         saveDefaultConfig();
 
-        // playerdata.yml を保存
-        saveDefaultPlayerData();
+        // ストレージを初期化
+        String storageType = getConfig().getString("storage-type", "yaml").toLowerCase();
+        if (!storageType.equals("yaml") && !storageType.equals("sqlite")) {
+            getLogger().warning("無効なストレージタイプ: " + storageType + " - デフォルトの 'yaml' を使用します");
+            storageType = "yaml";
+        }
+        getLogger().info("ストレージタイプ: " + storageType);
+        storage = StorageFactory.createStorage(this, storageType);
+        storage.initialize();
 
         // messages.yml を保存
         saveDefaultMessages();
@@ -54,6 +65,10 @@ public class Main extends JavaPlugin {
         if (rewardResetPlaytimeCmd != null) {
             rewardResetPlaytimeCmd.setExecutor(new RewardResetPlaytimeCommand(this));
         }
+        PluginCommand rewardMigrateCmd = getCommand("rewardmigrate");
+        if (rewardMigrateCmd != null) {
+            rewardMigrateCmd.setExecutor(new RewardMigrateCommand(this));
+        }
 
         getLogger().info("lgb01プラグインが有効化されました。");
     }
@@ -71,33 +86,31 @@ public class Main extends JavaPlugin {
         }
 
         // 非同期でデータを保存
-        savePlayerDataAsync();
+        if (storage != null) {
+            savePlayerDataAsync();
+            // ストレージを閉じる
+            storage.close();
+        }
 
         getLogger().info("lgb01プラグインが無効化されました。");
     }
 
     public void reloadConfig() {
         super.reloadConfig();
-        reloadPlayerData();
-        reloadMessages();
+        if (storage instanceof YamlStorage) {
+            ((YamlStorage) storage).reload();
+        }
+        if (messagesFile != null) {
+            reloadMessages();
+        }
     }
 
-    public FileConfiguration getPlayerData() {
-        return playerData;
+    public StorageInterface getStorage() {
+        return storage;
     }
 
     public void savePlayerDataAsync() {
-        CompletableFuture.runAsync(() -> {
-            try {
-                playerData.save(playerDataFile);
-            } catch (IOException e) {
-                getLogger().severe("playerdata.yml の保存に失敗しました: " + e.getMessage());
-            }
-        });
-    }
-
-    private void reloadPlayerData() {
-        playerData = YamlConfiguration.loadConfiguration(playerDataFile);
+        storage.saveAsync();
     }
 
     private void createDirectories(File file, String fileName) {
@@ -105,36 +118,6 @@ public class Main extends JavaPlugin {
         if (!dirsCreated && !file.getParentFile().exists()) {
             getLogger().warning(fileName + " のディレクトリ作成に失敗しました。");
         }
-    }
-
-    private void copyResourceOrCreateEmpty(File file, String resourceName, String fileName) {
-        try {
-            java.io.InputStream resourceStream = getResource(resourceName);
-            createDirectories(file, fileName);
-            if (resourceStream != null) {
-                Files.copy(resourceStream, file.toPath(), StandardCopyOption.REPLACE_EXISTING);
-            } else {
-                boolean fileCreated = file.createNewFile();
-                if (!fileCreated && !file.exists()) {
-                    getLogger().warning(fileName + " のファイル作成に失敗しました。");
-                }
-                getLogger().info(fileName + " リソースが見つからないため、空のファイルを作成しました。");
-            }
-        } catch (IOException e) {
-            getLogger().severe(fileName + " の作成に失敗しました: " + e.getMessage());
-        }
-    }
-
-    private void saveDefaultFile(File file, String resourceName, String fileName) {
-        if (!file.exists()) {
-            copyResourceOrCreateEmpty(file, resourceName, fileName);
-        }
-    }
-
-    private void saveDefaultPlayerData() {
-        playerDataFile = new File(getDataFolder(), "playerdata.yml");
-        saveDefaultFile(playerDataFile, "playerdata.yml", "playerdata.yml");
-        reloadPlayerData();
     }
 
     public FileConfiguration getMessages() {
@@ -146,8 +129,23 @@ public class Main extends JavaPlugin {
     }
 
     private void saveDefaultMessages() {
-        messagesFile = new File(getDataFolder(), "message.yml");
-        saveDefaultFile(messagesFile, "message.yml", "message.yml");
+        if (!messagesFile.exists()) {
+            try {
+                java.io.InputStream resourceStream = getResource("message.yml");
+                createDirectories(messagesFile, "message.yml");
+                if (resourceStream != null) {
+                    Files.copy(resourceStream, messagesFile.toPath(), StandardCopyOption.REPLACE_EXISTING);
+                } else {
+                    boolean fileCreated = messagesFile.createNewFile();
+                    if (!fileCreated && !messagesFile.exists()) {
+                        getLogger().warning("message.yml のファイル作成に失敗しました。");
+                    }
+                    getLogger().info("message.yml リソースが見つからないため、空のファイルを作成しました。");
+                }
+            } catch (IOException e) {
+                getLogger().severe("message.yml の作成に失敗しました: " + e.getMessage());
+            }
+        }
         reloadMessages();
     }
 

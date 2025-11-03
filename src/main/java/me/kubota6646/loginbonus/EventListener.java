@@ -39,21 +39,20 @@ public class EventListener implements Listener {
     public void onPlayerJoin(PlayerJoinEvent event) {
         Player player = event.getPlayer();
         UUID playerId = player.getUniqueId();
-        String playerKey = playerId.toString();
 
         // 今日の日付を取得
         String today = LocalDate.now().toString();
         currentDates.put(playerId, today);
 
         // 累積ログイン時間を取得 (デフォルト0.0)
-        double cumulativeMinutes = plugin.getPlayerData().getDouble(playerKey + ".cumulative", 0.0);
+        double cumulativeMinutes = plugin.getStorage().getCumulative(playerId);
         cumulativeMinutesMap.put(playerId, cumulativeMinutes);
 
         // 目標時間を取得
         int targetMinutes = plugin.getConfig().getInt("reward-time", 30);
 
         // 既に達成済みか確認
-        String lastReward = plugin.getPlayerData().getString(playerKey + ".lastReward");
+        String lastReward = plugin.getStorage().getLastReward(playerId);
         boolean alreadyRewarded = today.equals(lastReward);
 
         if (alreadyRewarded) {
@@ -97,7 +96,7 @@ public class EventListener implements Listener {
                     // 日付が変わったので、新しいカウントを開始
                     currentDates.put(playerId, currentDate);
                     // 累積時間を0にリセット
-                    plugin.getPlayerData().set(playerKey + ".cumulative", 0.0);
+                    plugin.getStorage().setCumulative(playerId, 0.0);
                     plugin.savePlayerDataAsync();
                     cumulativeMinutesMap.put(playerId, 0.0);
                     // ボスバーを更新
@@ -154,51 +153,44 @@ public class EventListener implements Listener {
         long start = loginStart;
         long currentTime = System.currentTimeMillis();
         double additionalMinutes = (currentTime - start) / 60000.0;
-        String playerKey = playerId.toString();
-        double savedCumulative = plugin.getPlayerData().getDouble(playerKey + ".cumulative", 0.0);
+        double savedCumulative = plugin.getStorage().getCumulative(playerId);
         double newCumulative = savedCumulative + additionalMinutes;
-        plugin.getPlayerData().set(playerKey + ".cumulative", newCumulative);
+        plugin.getStorage().setCumulative(playerId, newCumulative);
         plugin.savePlayerDataAsync();
     }
 
     public void giveReward(Player player, String today, boolean setLastReward, boolean updateStreak) {
         UUID playerId = player.getUniqueId();
-        String playerKey = playerId.toString();
 
         // ストリークを取得
-        int streak = plugin.getPlayerData().getInt(playerKey + ".streak", 1);
+        int streak = plugin.getStorage().getStreak(playerId);
 
         if (updateStreak && plugin.getConfig().getBoolean("streak-enabled", true)) {
             // ストリークを計算
-            String lastStreakDateStr = plugin.getPlayerData().getString(playerKey + ".lastStreakDate");
+            String lastStreakDateStr = plugin.getStorage().getLastStreakDate(playerId);
             if (lastStreakDateStr != null) {
                 LocalDate lastStreakDate = LocalDate.parse(lastStreakDateStr);
                 LocalDate yesterday = LocalDate.now().minusDays(1);
                 if (lastStreakDate.equals(yesterday)) {
-                    streak = plugin.getPlayerData().getInt(playerKey + ".streak", 1) + 1;
+                    streak = plugin.getStorage().getStreak(playerId) + 1;
                 }
             }
-            plugin.getPlayerData().set(playerKey + ".streak", streak);
-            plugin.getPlayerData().set(playerKey + ".lastStreakDate", today);
+            plugin.getStorage().setStreak(playerId, streak);
+            plugin.getStorage().setLastStreakDate(playerId, today);
         }
 
         // 基本報酬を与える
-        boolean rewardGiven = giveItems(player, plugin.getConfig().getMapList("reward-items"), streak - 1);
-        if (!rewardGiven) {
-            // 基本報酬が与えられなかった場合、特殊報酬も処理せず終了
-            return;
-        }
+        giveItems(player, plugin.getConfig().getMapList("reward-items"), streak - 1);
 
         // 特殊ストリーク報酬を与える
         if (plugin.getConfig().getBoolean("special_streak_rewards.enabled", false)) {
             String streakKey = String.valueOf(streak);
             if (plugin.getConfig().isConfigurationSection("special_streak_rewards.rewards." + streakKey)) {
                 List<Map<?, ?>> items = plugin.getConfig().getMapList("special_streak_rewards.rewards." + streakKey + ".items");
-                if (giveItems(player, items, 0)) {
-                    String message = plugin.getConfig().getString("special_streak_rewards.rewards." + streakKey + ".message");
-                    if (message != null) {
-                        player.sendMessage(ChatColor.translateAlternateColorCodes('&', message));
-                    }
+                giveItems(player, items, 0);
+                String message = plugin.getConfig().getString("special_streak_rewards.rewards." + streakKey + ".message");
+                if (message != null) {
+                    player.sendMessage(ChatColor.translateAlternateColorCodes('&', message));
                 }
             }
         }
@@ -216,12 +208,11 @@ public class EventListener implements Listener {
                 }
                 if (maxMultiple > 0) {
                     List<Map<?, ?>> items = plugin.getConfig().getMapList("special_multiple_rewards.multiples." + maxMultiple + ".items");
-                    if (giveItems(player, items, 0)) {
-                        String message = plugin.getConfig().getString("special_multiple_rewards.multiples." + maxMultiple + ".message");
-                        if (message != null) {
-                            message = message.replace("%days%", String.valueOf(streak));
-                            player.sendMessage(ChatColor.translateAlternateColorCodes('&', message));
-                        }
+                    giveItems(player, items, 0);
+                    String message = plugin.getConfig().getString("special_multiple_rewards.multiples." + maxMultiple + ".message");
+                    if (message != null) {
+                        message = message.replace("%days%", String.valueOf(streak));
+                        player.sendMessage(ChatColor.translateAlternateColorCodes('&', message));
                     }
                 }
             }
@@ -233,8 +224,11 @@ public class EventListener implements Listener {
 
         // 受け取り状況を記録
         if (setLastReward) {
-            plugin.getPlayerData().set(playerKey + ".lastReward", today);
-            plugin.savePlayerDataAsync();
+            // 累積時間を0にリセットし、最終報酬日を設定
+            plugin.getStorage().setCumulative(playerId, 0.0);
+            plugin.getStorage().setLastReward(playerId, today);
+            // 同期的に保存を完了させる
+            plugin.getStorage().saveAsync().join();
         }
 
         // タスクとボスバーをクリア
@@ -251,8 +245,8 @@ public class EventListener implements Listener {
         cumulativeMinutesMap.remove(playerId);
     }
 
-    private boolean giveItems(Player player, List<Map<?, ?>> items, int extraAmount) {
-        if (items.isEmpty()) return true;
+    private void giveItems(Player player, List<Map<?, ?>> items, int extraAmount) {
+        if (items.isEmpty()) return;
         List<ItemStack> itemStacks = new ArrayList<>();
         for (Map<?, ?> itemMap : items) {
             String itemName = (String) itemMap.get("item");
@@ -266,17 +260,14 @@ public class EventListener implements Listener {
                 plugin.getLogger().warning("無効なアイテム名: " + itemName);
             }
         }
-        if (itemStacks.isEmpty()) return true;
+        if (itemStacks.isEmpty()) return;
         Map<Integer, ItemStack> returned = player.getInventory().addItem(itemStacks.toArray(new ItemStack[0]));
         if (!returned.isEmpty()) {
             // インベントリが満杯の場合、入りきらなかったアイテムを地面にドロップ
             for (ItemStack leftover : returned.values()) {
                 player.getWorld().dropItemNaturally(player.getLocation(), leftover);
             }
-            // メッセージは表示しない
-            // ボスバーは変更しない
         }
-        return true; // 常にtrueを返す
     }
 
     public void cancelTasksForPlayer(UUID playerId) {
@@ -315,7 +306,6 @@ public class EventListener implements Listener {
 
     private void startTracking(Player player) {
         UUID playerId = player.getUniqueId();
-        String playerKey = playerId.toString();
 
         // 既存のタスクとボスバーをクリア
         cancelTasksForPlayer(playerId);
@@ -324,15 +314,15 @@ public class EventListener implements Listener {
         String today = LocalDate.now().toString();
         currentDates.put(playerId, today);
 
-        // 累積時間を取得 (リセット後なので0)
-        double cumulativeMinutes = 0.0;
+        // 累積時間をストレージから取得
+        double cumulativeMinutes = plugin.getStorage().getCumulative(playerId);
         cumulativeMinutesMap.put(playerId, cumulativeMinutes);
 
         // 目標時間を取得
         int targetMinutes = plugin.getConfig().getInt("reward-time", 30);
 
         // 既に達成済みか確認
-        String lastReward = plugin.getPlayerData().getString(playerKey + ".lastReward");
+        String lastReward = plugin.getStorage().getLastReward(playerId);
         boolean alreadyRewarded = today.equals(lastReward);
 
         if (alreadyRewarded) {
@@ -375,7 +365,7 @@ public class EventListener implements Listener {
                     // 日付が変わったので、新しいカウントを開始
                     currentDates.put(playerId, currentDate);
                     // 累積時間を0にリセット
-                    plugin.getPlayerData().set(playerKey + ".cumulative", 0.0);
+                    plugin.getStorage().setCumulative(playerId, 0.0);
                     plugin.savePlayerDataAsync();
                     cumulativeMinutesMap.put(playerId, 0.0);
                     // ボスバーを更新

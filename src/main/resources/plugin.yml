@@ -25,6 +25,10 @@ commands:
     description: "指定プレイヤーの累積プレイ時間をリセットするコマンド（OPのみ）"
     usage: "/<command> <player>"
     permission: "lgb01.admin"
+  rewardmigrate:
+    description: "プレイヤーデータをYAMLとSQLite間で移行するコマンド（OPのみ）"
+    usage: "/<command> <from> <to>"
+    permission: "lgb01.admin"
 
 permissions:
   lgb01.reload:

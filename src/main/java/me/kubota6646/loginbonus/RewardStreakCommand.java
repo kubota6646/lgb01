@@ -18,8 +18,7 @@ public record RewardStreakCommand(Main plugin) implements CommandExecutor {
         }
 
         UUID playerId = player.getUniqueId();
-        String playerKey = playerId.toString();
-        int streak = plugin.getPlayerData().getInt(playerKey + ".streak", 0);
+        int streak = plugin.getStorage().getStreak(playerId);
 
         player.sendMessage(ChatColor.GREEN + "現在のストリーク: " + streak + " 日");
         return true;
