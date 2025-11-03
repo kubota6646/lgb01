@@ -34,7 +34,7 @@ public class Main extends JavaPlugin {
         
         // YAMLストレージの場合、playerDataも保持
         if (storage instanceof YamlStorage) {
-            saveDefaultPlayerData();
+            playerData = ((YamlStorage) storage).getPlayerData();
         }
 
         // messages.yml を保存
@@ -99,12 +99,16 @@ public class Main extends JavaPlugin {
     public void reloadConfig() {
         super.reloadConfig();
         if (storage instanceof YamlStorage) {
-            reloadPlayerData();
+            ((YamlStorage) storage).reload();
+            playerData = ((YamlStorage) storage).getPlayerData();
         }
         reloadMessages();
     }
 
     public FileConfiguration getPlayerData() {
+        if (storage instanceof YamlStorage) {
+            return ((YamlStorage) storage).getPlayerData();
+        }
         return playerData;
     }
     
@@ -117,7 +121,10 @@ public class Main extends JavaPlugin {
     }
 
     private void reloadPlayerData() {
-        playerData = YamlConfiguration.loadConfiguration(playerDataFile);
+        if (storage instanceof YamlStorage) {
+            ((YamlStorage) storage).reload();
+            playerData = ((YamlStorage) storage).getPlayerData();
+        }
     }
 
     private void createDirectories(File file, String fileName) {

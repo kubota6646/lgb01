@@ -23,7 +23,16 @@ public class YamlStorage implements StorageInterface {
     public void initialize() {
         playerDataFile = new File(plugin.getDataFolder(), "playerdata.yml");
         if (!playerDataFile.exists()) {
-            plugin.saveResource("playerdata.yml", false);
+            try {
+                if (!plugin.getDataFolder().exists()) {
+                    plugin.getDataFolder().mkdirs();
+                }
+                // Create an empty playerdata.yml file
+                playerDataFile.createNewFile();
+                plugin.getLogger().info("playerdata.yml を作成しました");
+            } catch (IOException e) {
+                plugin.getLogger().severe("playerdata.yml の作成に失敗しました: " + e.getMessage());
+            }
         }
         playerData = YamlConfiguration.loadConfiguration(playerDataFile);
     }
