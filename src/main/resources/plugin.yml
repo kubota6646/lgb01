@@ -29,6 +29,10 @@ commands:
     description: "プレイヤーデータをYAMLとSQLite間で移行するコマンド（OPのみ）"
     usage: "/<command> <from> <to>"
     permission: "lgb01.admin"
+  rewardsync:
+    description: "データベースからプレイヤーデータを同期するコマンド（OPのみ、MySQLのみ）"
+    usage: "/<command> [player]"
+    permission: "lgb01.admin"
 
 permissions:
   lgb01.reload:

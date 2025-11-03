@@ -40,6 +40,12 @@ public class EventListener implements Listener {
         Player player = event.getPlayer();
         UUID playerId = player.getUniqueId();
 
+        // MySQL使用時は自動同期
+        String storageType = plugin.getConfig().getString("storage-type", "yaml").toLowerCase();
+        if (storageType.equals("mysql")) {
+            plugin.getStorage().syncPlayerData(playerId);
+        }
+
         // 今日の日付を取得
         String today = LocalDate.now().toString();
         currentDates.put(playerId, today);

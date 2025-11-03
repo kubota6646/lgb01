@@ -34,11 +34,22 @@ public class SqliteStorage implements StorageInterface {
                     "cumulative REAL DEFAULT 0.0," +
                     "last_reward TEXT," +
                     "streak INTEGER DEFAULT 1," +
-                    "last_streak_date TEXT" +
+                    "last_streak_date TEXT," +
+                    "last_sync INTEGER DEFAULT 0" +
                     ");";
             
             try (Statement stmt = connection.createStatement()) {
                 stmt.execute(createTable);
+            }
+            
+            // 既存テーブルにlast_syncカラムを追加（存在しない場合）
+            try (Statement stmt = connection.createStatement()) {
+                stmt.execute("ALTER TABLE player_data ADD COLUMN last_sync INTEGER DEFAULT 0");
+            } catch (SQLException e) {
+                // カラムが既に存在する場合は無視
+                if (!e.getMessage().contains("duplicate column name")) {
+                    plugin.getLogger().warning("last_syncカラムの追加に失敗しました: " + e.getMessage());
+                }
             }
             
             plugin.getLogger().info("SQLiteデータベースを初期化しました: " + dbFile.getAbsolutePath());
@@ -185,5 +196,41 @@ public class SqliteStorage implements StorageInterface {
                 plugin.getLogger().severe("SQLiteデータベース接続のクローズに失敗しました: " + e.getMessage());
             }
         }
+    }
+    
+    @Override
+    public synchronized long getLastSync(UUID playerId) {
+        String sql = "SELECT last_sync FROM player_data WHERE uuid = ?";
+        try (PreparedStatement pstmt = connection.prepareStatement(sql)) {
+            pstmt.setString(1, playerId.toString());
+            try (ResultSet rs = pstmt.executeQuery()) {
+                if (rs.next()) {
+                    return rs.getLong("last_sync");
+                }
+            }
+        } catch (SQLException e) {
+            plugin.getLogger().severe("最終同期日時の取得に失敗しました: " + e.getMessage());
+        }
+        return 0L;
+    }
+    
+    @Override
+    public synchronized void setLastSync(UUID playerId, long lastSync) {
+        String sql = "INSERT INTO player_data (uuid, last_sync) VALUES (?, ?) " +
+                "ON CONFLICT(uuid) DO UPDATE SET last_sync = ?";
+        try (PreparedStatement pstmt = connection.prepareStatement(sql)) {
+            pstmt.setString(1, playerId.toString());
+            pstmt.setLong(2, lastSync);
+            pstmt.setLong(3, lastSync);
+            pstmt.executeUpdate();
+        } catch (SQLException e) {
+            plugin.getLogger().severe("最終同期日時の設定に失敗しました: " + e.getMessage());
+        }
+    }
+    
+    @Override
+    public boolean syncPlayerData(UUID playerId) {
+        // SQLiteは単一サーバー用のため、同期は不要
+        return false;
     }
 }
