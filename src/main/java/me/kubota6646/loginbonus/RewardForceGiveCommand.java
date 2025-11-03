@@ -32,7 +32,8 @@ public record RewardForceGiveCommand(Main plugin) implements CommandExecutor {
 
         String today = LocalDate.now().toString();
 
-        plugin.getEventListener().giveReward(target, today, false, false); // lastRewardとストリークを更新しない
+        // lastRewardを更新して重複付与を防ぐが、ストリークは更新しない
+        plugin.getEventListener().giveReward(target, today, true, false);
 
         sender.sendMessage(ChatColor.GREEN + "プレイヤー '" + playerName + "' に今日の報酬を強制付与しました。");
 
