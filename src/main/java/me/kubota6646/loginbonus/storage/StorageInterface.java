@@ -83,6 +83,7 @@ public interface StorageInterface {
      * @param playerId プレイヤーのUUID
      * @return 最終同期日時（エポックミリ秒）、なければ0
      */
+    @SuppressWarnings("unused")
     long getLastSync(UUID playerId);
     
     /**
@@ -91,6 +92,7 @@ public interface StorageInterface {
      * @param playerId プレイヤーのUUID
      * @param lastSync 最終同期日時（エポックミリ秒）
      */
+    @SuppressWarnings("unused")
     void setLastSync(UUID playerId, long lastSync);
     
     /**
