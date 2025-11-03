@@ -15,7 +15,6 @@ import java.nio.file.StandardCopyOption;
 public class Main extends JavaPlugin {
 
     private StorageInterface storage;
-    private FileConfiguration playerData;
     private FileConfiguration messages;
     private File messagesFile;
     private EventListener eventListener;
@@ -34,11 +33,6 @@ public class Main extends JavaPlugin {
         getLogger().info("ストレージタイプ: " + storageType);
         storage = StorageFactory.createStorage(this, storageType);
         storage.initialize();
-        
-        // YAMLストレージの場合、playerDataも保持
-        if (storage instanceof YamlStorage) {
-            playerData = ((YamlStorage) storage).getPlayerData();
-        }
 
         // messages.yml を保存
         saveDefaultMessages();
@@ -103,7 +97,6 @@ public class Main extends JavaPlugin {
         super.reloadConfig();
         if (storage instanceof YamlStorage) {
             ((YamlStorage) storage).reload();
-            playerData = ((YamlStorage) storage).getPlayerData();
         }
         reloadMessages();
     }
@@ -123,24 +116,6 @@ public class Main extends JavaPlugin {
         }
     }
 
-    private void copyResourceOrCreateEmpty(File file, String resourceName, String fileName) {
-        try {
-            java.io.InputStream resourceStream = getResource(resourceName);
-            createDirectories(file, fileName);
-            if (resourceStream != null) {
-                Files.copy(resourceStream, file.toPath(), StandardCopyOption.REPLACE_EXISTING);
-            } else {
-                boolean fileCreated = file.createNewFile();
-                if (!fileCreated && !file.exists()) {
-                    getLogger().warning(fileName + " のファイル作成に失敗しました。");
-                }
-                getLogger().info(fileName + " リソースが見つからないため、空のファイルを作成しました。");
-            }
-        } catch (IOException e) {
-            getLogger().severe(fileName + " の作成に失敗しました: " + e.getMessage());
-        }
-    }
-
     public FileConfiguration getMessages() {
         return messages;
     }
@@ -152,7 +127,21 @@ public class Main extends JavaPlugin {
     private void saveDefaultMessages() {
         messagesFile = new File(getDataFolder(), "message.yml");
         if (!messagesFile.exists()) {
-            copyResourceOrCreateEmpty(messagesFile, "message.yml", "message.yml");
+            try {
+                java.io.InputStream resourceStream = getResource("message.yml");
+                createDirectories(messagesFile, "message.yml");
+                if (resourceStream != null) {
+                    Files.copy(resourceStream, messagesFile.toPath(), StandardCopyOption.REPLACE_EXISTING);
+                } else {
+                    boolean fileCreated = messagesFile.createNewFile();
+                    if (!fileCreated && !messagesFile.exists()) {
+                        getLogger().warning("message.yml のファイル作成に失敗しました。");
+                    }
+                    getLogger().info("message.yml リソースが見つからないため、空のファイルを作成しました。");
+                }
+            } catch (IOException e) {
+                getLogger().severe("message.yml の作成に失敗しました: " + e.getMessage());
+            }
         }
         reloadMessages();
     }
