@@ -11,13 +11,11 @@ import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.StandardCopyOption;
-import java.util.concurrent.CompletableFuture;
 
 public class Main extends JavaPlugin {
 
     private StorageInterface storage;
     private FileConfiguration playerData;
-    private File playerDataFile;
     private FileConfiguration messages;
     private File messagesFile;
     private EventListener eventListener;
@@ -161,12 +159,6 @@ public class Main extends JavaPlugin {
         if (!file.exists()) {
             copyResourceOrCreateEmpty(file, resourceName, fileName);
         }
-    }
-
-    private void saveDefaultPlayerData() {
-        playerDataFile = new File(getDataFolder(), "playerdata.yml");
-        saveDefaultFile(playerDataFile, "playerdata.yml", "playerdata.yml");
-        reloadPlayerData();
     }
 
     public FileConfiguration getMessages() {
