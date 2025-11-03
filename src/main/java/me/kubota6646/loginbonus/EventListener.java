@@ -105,6 +105,8 @@ public class EventListener implements Listener {
                     plugin.getStorage().setCumulative(playerId, 0.0);
                     plugin.savePlayerDataAsync();
                     cumulativeMinutesMap.put(playerId, 0.0);
+                    // ログイン開始時間を現在時刻にリセット
+                    loginTimes.put(playerId, System.currentTimeMillis());
                     // ボスバーを更新
                     double newCumulativeMinutes = 0.0;
                     double newRemainingMinutes = targetMinutes - newCumulativeMinutes;
@@ -374,6 +376,8 @@ public class EventListener implements Listener {
                     plugin.getStorage().setCumulative(playerId, 0.0);
                     plugin.savePlayerDataAsync();
                     cumulativeMinutesMap.put(playerId, 0.0);
+                    // ログイン開始時間を現在時刻にリセット
+                    loginTimes.put(playerId, System.currentTimeMillis());
                     // ボスバーを更新
                     double newCumulativeMinutes = 0.0;
                     double newRemainingMinutes = targetMinutes - newCumulativeMinutes;
