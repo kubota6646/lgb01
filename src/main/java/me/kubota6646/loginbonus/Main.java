@@ -108,26 +108,12 @@ public class Main extends JavaPlugin {
         reloadMessages();
     }
 
-    public FileConfiguration getPlayerData() {
-        if (storage instanceof YamlStorage) {
-            return ((YamlStorage) storage).getPlayerData();
-        }
-        return playerData;
-    }
-    
     public StorageInterface getStorage() {
         return storage;
     }
 
     public void savePlayerDataAsync() {
         storage.saveAsync();
-    }
-
-    private void reloadPlayerData() {
-        if (storage instanceof YamlStorage) {
-            ((YamlStorage) storage).reload();
-            playerData = ((YamlStorage) storage).getPlayerData();
-        }
     }
 
     private void createDirectories(File file, String fileName) {
@@ -155,12 +141,6 @@ public class Main extends JavaPlugin {
         }
     }
 
-    private void saveDefaultFile(File file, String resourceName, String fileName) {
-        if (!file.exists()) {
-            copyResourceOrCreateEmpty(file, resourceName, fileName);
-        }
-    }
-
     public FileConfiguration getMessages() {
         return messages;
     }
@@ -171,7 +151,9 @@ public class Main extends JavaPlugin {
 
     private void saveDefaultMessages() {
         messagesFile = new File(getDataFolder(), "message.yml");
-        saveDefaultFile(messagesFile, "message.yml", "message.yml");
+        if (!messagesFile.exists()) {
+            copyResourceOrCreateEmpty(messagesFile, "message.yml", "message.yml");
+        }
         reloadMessages();
     }
 
