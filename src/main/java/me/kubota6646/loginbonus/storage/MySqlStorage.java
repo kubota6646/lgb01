@@ -66,7 +66,7 @@ public class MySqlStorage implements StorageInterface {
         } catch (SQLException e) {
             plugin.getLogger().severe("MySQLデータベースの初期化に失敗しました: " + e.getMessage());
             plugin.getLogger().severe("データベースの接続情報とデータベースが存在することを確認してください。");
-            e.printStackTrace();
+            plugin.getLogger().severe("スタックトレース: " + java.util.Arrays.toString(e.getStackTrace()));
         }
     }
     

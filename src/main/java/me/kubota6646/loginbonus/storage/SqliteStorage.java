@@ -22,7 +22,9 @@ public class SqliteStorage implements StorageInterface {
     public void initialize() {
         try {
             if (!plugin.getDataFolder().exists()) {
-                plugin.getDataFolder().mkdirs();
+                if (!plugin.getDataFolder().mkdirs()) {
+                    plugin.getLogger().warning("データフォルダの作成に失敗しました");
+                }
             }
             
             String url = "jdbc:sqlite:" + dbFile.getAbsolutePath();
@@ -62,7 +64,7 @@ public class SqliteStorage implements StorageInterface {
             plugin.getLogger().info("SQLiteデータベースを初期化しました: " + dbFile.getAbsolutePath());
         } catch (SQLException e) {
             plugin.getLogger().severe("SQLiteデータベースの初期化に失敗しました: " + e.getMessage());
-            e.printStackTrace();
+            plugin.getLogger().severe("スタックトレース: " + java.util.Arrays.toString(e.getStackTrace()));
         }
     }
     

@@ -25,11 +25,14 @@ public class YamlStorage implements StorageInterface {
         if (!playerDataFile.exists()) {
             try {
                 if (!plugin.getDataFolder().exists()) {
-                    plugin.getDataFolder().mkdirs();
+                    if (!plugin.getDataFolder().mkdirs()) {
+                        plugin.getLogger().warning("データフォルダの作成に失敗しました");
+                    }
                 }
                 // Create an empty playerdata.yml file
-                playerDataFile.createNewFile();
-                plugin.getLogger().info("playerdata.yml を作成しました");
+                if (playerDataFile.createNewFile()) {
+                    plugin.getLogger().info("playerdata.yml を作成しました");
+                }
             } catch (IOException e) {
                 plugin.getLogger().severe("playerdata.yml の作成に失敗しました: " + e.getMessage());
             }

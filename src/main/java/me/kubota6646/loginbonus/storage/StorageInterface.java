@@ -79,6 +79,7 @@ public interface StorageInterface {
     
     /**
      * プレイヤーの最終同期日時を取得
+     * Note: 将来の同期機能拡張のために予約されています
      * @param playerId プレイヤーのUUID
      * @return 最終同期日時（エポックミリ秒）、なければ0
      */
@@ -86,6 +87,7 @@ public interface StorageInterface {
     
     /**
      * プレイヤーの最終同期日時を設定
+     * Note: 将来の同期機能拡張のために予約されています
      * @param playerId プレイヤーのUUID
      * @param lastSync 最終同期日時（エポックミリ秒）
      */
