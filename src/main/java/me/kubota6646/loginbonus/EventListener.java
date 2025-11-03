@@ -225,6 +225,8 @@ public class EventListener implements Listener {
         // 受け取り状況を記録
         if (setLastReward) {
             plugin.getStorage().setLastReward(playerId, today);
+            // 累積時間を0にリセット（次の日のために）
+            plugin.getStorage().setCumulative(playerId, 0.0);
             plugin.savePlayerDataAsync();
         }
 
