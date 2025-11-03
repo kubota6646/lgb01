@@ -224,10 +224,11 @@ public class EventListener implements Listener {
 
         // 受け取り状況を記録
         if (setLastReward) {
-            plugin.getStorage().setLastReward(playerId, today);
-            // 累積時間を0にリセット（次の日のために）
+            // 累積時間を0にリセットし、最終報酬日を設定
             plugin.getStorage().setCumulative(playerId, 0.0);
-            plugin.savePlayerDataAsync();
+            plugin.getStorage().setLastReward(playerId, today);
+            // 同期的に保存を完了させる
+            plugin.getStorage().saveAsync().join();
         }
 
         // タスクとボスバーをクリア
