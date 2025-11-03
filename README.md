@@ -215,6 +215,7 @@ MySQLストレージの場合: 指定されたMySQLデータベースに`playerd
 - **ソースコード**: GitHubで利用可能。
 - **ビルド**: Gradleを使用してプロジェクトをビルドします。
 - **依存関係**: Spigot APIが必要です。SQLiteストレージを使用する場合、SQLite JDBCドライバが含まれます。MySQLストレージを使用する場合、MySQL JDBCドライバが含まれます。
+- **Minecraftバージョンの変更**: プラグインを別のMinecraftバージョン（例: 1.21.8）に対応させるには、`build.gradle` のSpigot API依存関係を更新し（例: `compileOnly 'org.spigotmc:spigot-api:1.21.3-R0.1-SNAPSHOT'`）、`src/main/resources/plugin.yml` の `api-version` を変更してください（例: `api-version: 1.21`）。また、README.mdの互換性セクションを更新します。MinecraftのAPI変更に注意し、テストを行ってください。（変更の仕方などがよく分からない方はGitHub CopilotなどのAIに質問してみてください）
 
 ## ライセンス
 
@@ -226,4 +227,5 @@ MySQLストレージの場合: 指定されたMySQLデータベースに`playerd
 
 ## 貢献者
 このプラグインの開発では、GitHub Copilotがコード生成とドキュメント支援を提供しました。
+
 
