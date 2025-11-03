@@ -39,7 +39,6 @@ public class EventListener implements Listener {
     public void onPlayerJoin(PlayerJoinEvent event) {
         Player player = event.getPlayer();
         UUID playerId = player.getUniqueId();
-        String playerKey = playerId.toString();
 
         // 今日の日付を取得
         String today = LocalDate.now().toString();
@@ -162,7 +161,6 @@ public class EventListener implements Listener {
 
     public void giveReward(Player player, String today, boolean setLastReward, boolean updateStreak) {
         UUID playerId = player.getUniqueId();
-        String playerKey = playerId.toString();
 
         // ストリークを取得
         int streak = plugin.getStorage().getStreak(playerId);
@@ -182,22 +180,17 @@ public class EventListener implements Listener {
         }
 
         // 基本報酬を与える
-        boolean rewardGiven = giveItems(player, plugin.getConfig().getMapList("reward-items"), streak - 1);
-        if (!rewardGiven) {
-            // 基本報酬が与えられなかった場合、特殊報酬も処理せず終了
-            return;
-        }
+        giveItems(player, plugin.getConfig().getMapList("reward-items"), streak - 1);
 
         // 特殊ストリーク報酬を与える
         if (plugin.getConfig().getBoolean("special_streak_rewards.enabled", false)) {
             String streakKey = String.valueOf(streak);
             if (plugin.getConfig().isConfigurationSection("special_streak_rewards.rewards." + streakKey)) {
                 List<Map<?, ?>> items = plugin.getConfig().getMapList("special_streak_rewards.rewards." + streakKey + ".items");
-                if (giveItems(player, items, 0)) {
-                    String message = plugin.getConfig().getString("special_streak_rewards.rewards." + streakKey + ".message");
-                    if (message != null) {
-                        player.sendMessage(ChatColor.translateAlternateColorCodes('&', message));
-                    }
+                giveItems(player, items, 0);
+                String message = plugin.getConfig().getString("special_streak_rewards.rewards." + streakKey + ".message");
+                if (message != null) {
+                    player.sendMessage(ChatColor.translateAlternateColorCodes('&', message));
                 }
             }
         }
@@ -215,12 +208,11 @@ public class EventListener implements Listener {
                 }
                 if (maxMultiple > 0) {
                     List<Map<?, ?>> items = plugin.getConfig().getMapList("special_multiple_rewards.multiples." + maxMultiple + ".items");
-                    if (giveItems(player, items, 0)) {
-                        String message = plugin.getConfig().getString("special_multiple_rewards.multiples." + maxMultiple + ".message");
-                        if (message != null) {
-                            message = message.replace("%days%", String.valueOf(streak));
-                            player.sendMessage(ChatColor.translateAlternateColorCodes('&', message));
-                        }
+                    giveItems(player, items, 0);
+                    String message = plugin.getConfig().getString("special_multiple_rewards.multiples." + maxMultiple + ".message");
+                    if (message != null) {
+                        message = message.replace("%days%", String.valueOf(streak));
+                        player.sendMessage(ChatColor.translateAlternateColorCodes('&', message));
                     }
                 }
             }
@@ -250,8 +242,8 @@ public class EventListener implements Listener {
         cumulativeMinutesMap.remove(playerId);
     }
 
-    private boolean giveItems(Player player, List<Map<?, ?>> items, int extraAmount) {
-        if (items.isEmpty()) return true;
+    private void giveItems(Player player, List<Map<?, ?>> items, int extraAmount) {
+        if (items.isEmpty()) return;
         List<ItemStack> itemStacks = new ArrayList<>();
         for (Map<?, ?> itemMap : items) {
             String itemName = (String) itemMap.get("item");
@@ -265,17 +257,14 @@ public class EventListener implements Listener {
                 plugin.getLogger().warning("無効なアイテム名: " + itemName);
             }
         }
-        if (itemStacks.isEmpty()) return true;
+        if (itemStacks.isEmpty()) return;
         Map<Integer, ItemStack> returned = player.getInventory().addItem(itemStacks.toArray(new ItemStack[0]));
         if (!returned.isEmpty()) {
             // インベントリが満杯の場合、入りきらなかったアイテムを地面にドロップ
             for (ItemStack leftover : returned.values()) {
                 player.getWorld().dropItemNaturally(player.getLocation(), leftover);
             }
-            // メッセージは表示しない
-            // ボスバーは変更しない
         }
-        return true; // 常にtrueを返す
     }
 
     public void cancelTasksForPlayer(UUID playerId) {
@@ -314,7 +303,6 @@ public class EventListener implements Listener {
 
     private void startTracking(Player player) {
         UUID playerId = player.getUniqueId();
-        String playerKey = playerId.toString();
 
         // 既存のタスクとボスバーをクリア
         cancelTasksForPlayer(playerId);
