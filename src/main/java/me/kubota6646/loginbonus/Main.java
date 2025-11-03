@@ -21,6 +21,9 @@ public class Main extends JavaPlugin {
 
     @Override
     public void onEnable() {
+        // messages.yml を初期化（saveDefaultConfig前に必要）
+        messagesFile = new File(getDataFolder(), "message.yml");
+        
         // 設定ファイルを保存
         saveDefaultConfig();
 
@@ -83,10 +86,9 @@ public class Main extends JavaPlugin {
         }
 
         // 非同期でデータを保存
-        savePlayerDataAsync();
-        
-        // ストレージを閉じる
         if (storage != null) {
+            savePlayerDataAsync();
+            // ストレージを閉じる
             storage.close();
         }
 
@@ -98,7 +100,9 @@ public class Main extends JavaPlugin {
         if (storage instanceof YamlStorage) {
             ((YamlStorage) storage).reload();
         }
-        reloadMessages();
+        if (messagesFile != null) {
+            reloadMessages();
+        }
     }
 
     public StorageInterface getStorage() {
@@ -125,7 +129,6 @@ public class Main extends JavaPlugin {
     }
 
     private void saveDefaultMessages() {
-        messagesFile = new File(getDataFolder(), "message.yml");
         if (!messagesFile.exists()) {
             try {
                 java.io.InputStream resourceStream = getResource("message.yml");
