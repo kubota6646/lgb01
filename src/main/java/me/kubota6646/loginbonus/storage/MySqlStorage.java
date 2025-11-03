@@ -62,11 +62,10 @@ public class MySqlStorage implements StorageInterface {
                 stmt.execute(createTable);
             }
             
-            plugin.getLogger().info("MySQLデータベースに接続しました: " + host + ":" + port + "/" + database);
+            plugin.getLogger().info("MySQLデータベースに接続しました");
         } catch (SQLException e) {
             plugin.getLogger().severe("MySQLデータベースの初期化に失敗しました: " + e.getMessage());
-            plugin.getLogger().severe("接続情報: " + host + ":" + port + "/" + database);
-            plugin.getLogger().severe("データベースが存在し、接続情報が正しいことを確認してください。");
+            plugin.getLogger().severe("データベースの接続情報とデータベースが存在することを確認してください。");
             e.printStackTrace();
         }
     }

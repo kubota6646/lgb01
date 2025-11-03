@@ -43,13 +43,20 @@ public class SqliteStorage implements StorageInterface {
             }
             
             // 既存テーブルにlast_syncカラムを追加（存在しない場合）
-            try (Statement stmt = connection.createStatement()) {
-                stmt.execute("ALTER TABLE player_data ADD COLUMN last_sync INTEGER DEFAULT 0");
-            } catch (SQLException e) {
-                // カラムが既に存在する場合は無視
-                if (!e.getMessage().contains("duplicate column name")) {
-                    plugin.getLogger().warning("last_syncカラムの追加に失敗しました: " + e.getMessage());
+            try (Statement stmt = connection.createStatement();
+                 ResultSet rs = stmt.executeQuery("PRAGMA table_info(player_data)")) {
+                boolean hasLastSync = false;
+                while (rs.next()) {
+                    if ("last_sync".equals(rs.getString("name"))) {
+                        hasLastSync = true;
+                        break;
+                    }
                 }
+                if (!hasLastSync) {
+                    stmt.execute("ALTER TABLE player_data ADD COLUMN last_sync INTEGER DEFAULT 0");
+                }
+            } catch (SQLException e) {
+                plugin.getLogger().warning("last_syncカラムの確認/追加に失敗しました: " + e.getMessage());
             }
             
             plugin.getLogger().info("SQLiteデータベースを初期化しました: " + dbFile.getAbsolutePath());

@@ -82,7 +82,7 @@ public class RewardSyncCommand implements CommandExecutor {
                     // 変更があったかチェック
                     boolean hasChanges = (oldCumulative != newCumulative) || 
                                         (oldStreak != newStreak) || 
-                                        !String.valueOf(oldLastReward).equals(String.valueOf(newLastReward));
+                                        !java.util.Objects.equals(oldLastReward, newLastReward);
                     
                     // メインスレッドでメッセージを送信
                     Bukkit.getScheduler().runTask(plugin, () -> {
