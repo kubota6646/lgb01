@@ -39,3 +39,4 @@ shadowJar {
     archiveVersion.set('')
 
 }
+

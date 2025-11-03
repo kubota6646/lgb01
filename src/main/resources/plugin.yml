@@ -42,3 +42,4 @@ permissions:
     description: "管理者コマンドを使用する権限"
 
     default: op
+
