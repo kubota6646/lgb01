@@ -187,7 +187,7 @@ public class Main extends JavaPlugin {
     }
 
     private void startMidnightCheckTask() {
-        // 毎秒、日付が変わったかチェック
+        // 30秒ごとに、日付が変わったかチェック
         new BukkitRunnable() {
             @Override
             public void run() {
@@ -202,6 +202,6 @@ public class Main extends JavaPlugin {
                     }
                 }
             }
-        }.runTaskTimer(this, 0L, 20L); // 毎秒実行
+        }.runTaskTimer(this, 0L, 600L); // 30秒ごとに実行 (600 ticks = 30 seconds)
     }
 }
