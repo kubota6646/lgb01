@@ -18,6 +18,7 @@ mysql:
   host: localhost
   port: 3306
   database: loginbonus
+  table-name: player_data
   username: root
   password: password
   # 接続プール設定

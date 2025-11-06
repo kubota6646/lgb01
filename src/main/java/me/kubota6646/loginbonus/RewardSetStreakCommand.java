@@ -1,7 +1,6 @@
 package me.kubota6646.loginbonus;
 
 import org.bukkit.Bukkit;
-import org.bukkit.ChatColor;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
@@ -14,19 +13,21 @@ public record RewardSetStreakCommand(Main plugin) implements CommandExecutor {
     @Override
     public boolean onCommand(@NotNull CommandSender sender, @NotNull Command command, @NotNull String label, @NotNull String[] args) {
         if (!sender.isOp()) {
-            sender.sendMessage(ChatColor.RED + "このコマンドはOP権限が必要です。");
+            sender.sendMessage(plugin.getMessage("no-permission", "&cこのコマンドはOP権限が必要です。"));
             return true;
         }
 
         if (args.length != 2) {
-            sender.sendMessage(ChatColor.RED + "使用法: /" + label + " <player> <streak>");
+            sender.sendMessage(plugin.getMessage("set-streak-usage", "&c使用法: /%command% <player> <streak>",
+                "%command%", label));
             return true;
         }
 
         String playerName = args[0];
         Player target = Bukkit.getPlayer(playerName);
         if (target == null) {
-            sender.sendMessage(ChatColor.RED + "プレイヤー '" + playerName + "' が見つかりません。");
+            sender.sendMessage(plugin.getMessage("player-not-found", "&cプレイヤー '%player%' が見つかりません。",
+                "%player%", playerName));
             return true;
         }
 
@@ -34,12 +35,12 @@ public record RewardSetStreakCommand(Main plugin) implements CommandExecutor {
         try {
             streak = Integer.parseInt(args[1]);
         } catch (NumberFormatException e) {
-            sender.sendMessage(ChatColor.RED + "ストリークは数値で指定してください。");
+            sender.sendMessage(plugin.getMessage("invalid-number", "&cストリークは数値で指定してください。"));
             return true;
         }
 
         if (streak < 0) {
-            sender.sendMessage(ChatColor.RED + "ストリークは0以上で指定してください。");
+            sender.sendMessage(plugin.getMessage("number-must-be-positive", "&cストリークは0以上で指定してください。"));
             return true;
         }
 
@@ -48,7 +49,8 @@ public record RewardSetStreakCommand(Main plugin) implements CommandExecutor {
         plugin.getStorage().setLastStreakDate(target.getUniqueId(), LocalDate.now().toString());
         plugin.savePlayerDataAsync();
 
-        sender.sendMessage(ChatColor.GREEN + "プレイヤー '" + playerName + "' のストリークを " + streak + " 日に設定しました。");
+        sender.sendMessage(plugin.getMessage("set-streak-success", "&aプレイヤー '%player%' のストリークを %streak% 日に設定しました。",
+            "%player%", playerName, "%streak%", String.valueOf(streak)));
 
         return true;
     }

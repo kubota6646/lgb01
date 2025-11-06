@@ -122,11 +122,52 @@ public class YamlStorage implements StorageInterface {
         return false;
     }
     
-    public FileConfiguration getPlayerData() {
-        return playerData;
-    }
-    
     public void reload() {
         playerData = YamlConfiguration.loadConfiguration(playerDataFile);
+    }
+    
+    @Override
+    public boolean deletePlayerData(UUID playerId) {
+        String key = playerId.toString();
+        if (playerData.contains(key)) {
+            playerData.set(key, null);
+            try {
+                playerData.save(playerDataFile);
+                return true;
+            } catch (IOException e) {
+                plugin.getLogger().severe("プレイヤーデータの削除に失敗しました: " + e.getMessage());
+                return false;
+            }
+        }
+        return false;
+    }
+    
+    @Override
+    public boolean deleteAllPlayerData() {
+        try {
+            // 全てのキーを削除
+            for (String key : playerData.getKeys(false)) {
+                playerData.set(key, null);
+            }
+            playerData.save(playerDataFile);
+            return true;
+        } catch (IOException e) {
+            plugin.getLogger().severe("全プレイヤーデータの削除に失敗しました: " + e.getMessage());
+            return false;
+        }
+    }
+    
+    @Override
+    public java.util.List<UUID> getAllPlayerUUIDs() {
+        java.util.List<UUID> uuids = new java.util.ArrayList<>();
+        for (String key : playerData.getKeys(false)) {
+            try {
+                UUID uuid = UUID.fromString(key);
+                uuids.add(uuid);
+            } catch (IllegalArgumentException e) {
+                plugin.getLogger().warning("無効なUUID: " + key);
+            }
+        }
+        return uuids;
     }
 }
