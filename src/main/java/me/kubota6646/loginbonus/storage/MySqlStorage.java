@@ -345,4 +345,27 @@ public class MySqlStorage implements StorageInterface {
             return false;
         }
     }
+    
+    @Override
+    public synchronized java.util.List<UUID> getAllPlayerUUIDs() {
+        java.util.List<UUID> uuids = new java.util.ArrayList<>();
+        String sql = "SELECT uuid FROM " + tableName;
+        try {
+            reconnectIfNeeded();
+            try (Statement stmt = connection.createStatement();
+                 ResultSet rs = stmt.executeQuery(sql)) {
+                while (rs.next()) {
+                    try {
+                        UUID uuid = UUID.fromString(rs.getString("uuid"));
+                        uuids.add(uuid);
+                    } catch (IllegalArgumentException e) {
+                        plugin.getLogger().warning("無効なUUID: " + rs.getString("uuid"));
+                    }
+                }
+            }
+        } catch (SQLException e) {
+            plugin.getLogger().severe("プレイヤーUUIDリストの取得に失敗しました: " + e.getMessage());
+        }
+        return uuids;
+    }
 }

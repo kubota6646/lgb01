@@ -160,4 +160,18 @@ public class YamlStorage implements StorageInterface {
             return false;
         }
     }
+    
+    @Override
+    public java.util.List<UUID> getAllPlayerUUIDs() {
+        java.util.List<UUID> uuids = new java.util.ArrayList<>();
+        for (String key : playerData.getKeys(false)) {
+            try {
+                UUID uuid = UUID.fromString(key);
+                uuids.add(uuid);
+            } catch (IllegalArgumentException e) {
+                plugin.getLogger().warning("無効なUUID: " + key);
+            }
+        }
+        return uuids;
+    }
 }

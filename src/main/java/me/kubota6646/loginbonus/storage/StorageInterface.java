@@ -114,4 +114,10 @@ public interface StorageInterface {
      * @return 削除に成功した場合true
      */
     boolean deleteAllPlayerData();
+    
+    /**
+     * 全てのプレイヤーUUIDを取得
+     * @return プレイヤーUUIDのリスト
+     */
+    java.util.List<UUID> getAllPlayerUUIDs();
 }
