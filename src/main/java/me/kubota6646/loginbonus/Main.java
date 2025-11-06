@@ -76,6 +76,14 @@ public class Main extends JavaPlugin {
         if (rewardSyncCmd != null) {
             rewardSyncCmd.setExecutor(new RewardSyncCommand(this));
         }
+        PluginCommand rewardDeletePlayerCmd = getCommand("rewarddeleteplayer");
+        if (rewardDeletePlayerCmd != null) {
+            rewardDeletePlayerCmd.setExecutor(new RewardDeletePlayerCommand(this));
+        }
+        PluginCommand rewardDeleteAllCmd = getCommand("rewarddeleteall");
+        if (rewardDeleteAllCmd != null) {
+            rewardDeleteAllCmd.setExecutor(new RewardDeleteAllCommand(this));
+        }
 
         // 日付変更チェックタスクを開始
         lastCheckedDate = LocalDate.now().toString();

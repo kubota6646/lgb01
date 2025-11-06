@@ -101,4 +101,17 @@ public interface StorageInterface {
      * @return データが更新された場合true
      */
     boolean syncPlayerData(UUID playerId);
+    
+    /**
+     * 特定のプレイヤーのデータを削除
+     * @param playerId プレイヤーのUUID
+     * @return 削除に成功した場合true
+     */
+    boolean deletePlayerData(UUID playerId);
+    
+    /**
+     * 全てのプレイヤーデータを削除
+     * @return 削除に成功した場合true
+     */
+    boolean deleteAllPlayerData();
 }

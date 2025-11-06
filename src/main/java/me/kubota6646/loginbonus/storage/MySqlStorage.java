@@ -14,6 +14,7 @@ public class MySqlStorage implements StorageInterface {
     private final String host;
     private final int port;
     private final String database;
+    private final String tableName;
     private final String username;
     private final String password;
     
@@ -26,12 +27,14 @@ public class MySqlStorage implements StorageInterface {
             this.host = "localhost";
             this.port = 3306;
             this.database = "loginbonus";
+            this.tableName = "player_data";
             this.username = "root";
             this.password = "password";
         } else {
             this.host = mysqlConfig.getString("host", "localhost");
             this.port = mysqlConfig.getInt("port", 3306);
             this.database = mysqlConfig.getString("database", "loginbonus");
+            this.tableName = mysqlConfig.getString("table-name", "player_data");
             this.username = mysqlConfig.getString("username", "root");
             this.password = mysqlConfig.getString("password", "password");
         }
@@ -48,7 +51,7 @@ public class MySqlStorage implements StorageInterface {
             connection = DriverManager.getConnection(url, username, password);
             
             // テーブルを作成
-            String createTable = "CREATE TABLE IF NOT EXISTS player_data (" +
+            String createTable = "CREATE TABLE IF NOT EXISTS " + tableName + " (" +
                     "uuid VARCHAR(36) PRIMARY KEY," +
                     "cumulative DOUBLE DEFAULT 0.0," +
                     "last_reward VARCHAR(10)," +
@@ -79,7 +82,7 @@ public class MySqlStorage implements StorageInterface {
     
     @Override
     public synchronized double getCumulative(UUID playerId) {
-        String sql = "SELECT cumulative FROM player_data WHERE uuid = ?";
+        String sql = "SELECT cumulative FROM " + tableName + " WHERE uuid = ?";
         try {
             reconnectIfNeeded();
             try (PreparedStatement pstmt = connection.prepareStatement(sql)) {
@@ -98,7 +101,7 @@ public class MySqlStorage implements StorageInterface {
     
     @Override
     public synchronized void setCumulative(UUID playerId, double cumulative) {
-        String sql = "INSERT INTO player_data (uuid, cumulative, last_sync) VALUES (?, ?, ?) " +
+        String sql = "INSERT INTO " + tableName + " (uuid, cumulative, last_sync) VALUES (?, ?, ?) " +
                 "ON DUPLICATE KEY UPDATE cumulative = ?, last_sync = ?";
         try {
             reconnectIfNeeded();
@@ -118,7 +121,7 @@ public class MySqlStorage implements StorageInterface {
     
     @Override
     public synchronized String getLastReward(UUID playerId) {
-        String sql = "SELECT last_reward FROM player_data WHERE uuid = ?";
+        String sql = "SELECT last_reward FROM " + tableName + " WHERE uuid = ?";
         try {
             reconnectIfNeeded();
             try (PreparedStatement pstmt = connection.prepareStatement(sql)) {
@@ -137,7 +140,7 @@ public class MySqlStorage implements StorageInterface {
     
     @Override
     public synchronized void setLastReward(UUID playerId, String lastReward) {
-        String sql = "INSERT INTO player_data (uuid, last_reward, last_sync) VALUES (?, ?, ?) " +
+        String sql = "INSERT INTO " + tableName + " (uuid, last_reward, last_sync) VALUES (?, ?, ?) " +
                 "ON DUPLICATE KEY UPDATE last_reward = ?, last_sync = ?";
         try {
             reconnectIfNeeded();
@@ -157,7 +160,7 @@ public class MySqlStorage implements StorageInterface {
     
     @Override
     public synchronized int getStreak(UUID playerId) {
-        String sql = "SELECT streak FROM player_data WHERE uuid = ?";
+        String sql = "SELECT streak FROM " + tableName + " WHERE uuid = ?";
         try {
             reconnectIfNeeded();
             try (PreparedStatement pstmt = connection.prepareStatement(sql)) {
@@ -176,7 +179,7 @@ public class MySqlStorage implements StorageInterface {
     
     @Override
     public synchronized void setStreak(UUID playerId, int streak) {
-        String sql = "INSERT INTO player_data (uuid, streak, last_sync) VALUES (?, ?, ?) " +
+        String sql = "INSERT INTO " + tableName + " (uuid, streak, last_sync) VALUES (?, ?, ?) " +
                 "ON DUPLICATE KEY UPDATE streak = ?, last_sync = ?";
         try {
             reconnectIfNeeded();
@@ -196,7 +199,7 @@ public class MySqlStorage implements StorageInterface {
     
     @Override
     public synchronized String getLastStreakDate(UUID playerId) {
-        String sql = "SELECT last_streak_date FROM player_data WHERE uuid = ?";
+        String sql = "SELECT last_streak_date FROM " + tableName + " WHERE uuid = ?";
         try {
             reconnectIfNeeded();
             try (PreparedStatement pstmt = connection.prepareStatement(sql)) {
@@ -215,7 +218,7 @@ public class MySqlStorage implements StorageInterface {
     
     @Override
     public synchronized void setLastStreakDate(UUID playerId, String lastStreakDate) {
-        String sql = "INSERT INTO player_data (uuid, last_streak_date, last_sync) VALUES (?, ?, ?) " +
+        String sql = "INSERT INTO " + tableName + " (uuid, last_streak_date, last_sync) VALUES (?, ?, ?) " +
                 "ON DUPLICATE KEY UPDATE last_streak_date = ?, last_sync = ?";
         try {
             reconnectIfNeeded();
@@ -235,7 +238,7 @@ public class MySqlStorage implements StorageInterface {
     
     @Override
     public synchronized long getLastSync(UUID playerId) {
-        String sql = "SELECT last_sync FROM player_data WHERE uuid = ?";
+        String sql = "SELECT last_sync FROM " + tableName + " WHERE uuid = ?";
         try {
             reconnectIfNeeded();
             try (PreparedStatement pstmt = connection.prepareStatement(sql)) {
@@ -254,7 +257,7 @@ public class MySqlStorage implements StorageInterface {
     
     @Override
     public synchronized void setLastSync(UUID playerId, long lastSync) {
-        String sql = "INSERT INTO player_data (uuid, last_sync) VALUES (?, ?) " +
+        String sql = "INSERT INTO " + tableName + " (uuid, last_sync) VALUES (?, ?) " +
                 "ON DUPLICATE KEY UPDATE last_sync = ?";
         try {
             reconnectIfNeeded();
@@ -272,7 +275,7 @@ public class MySqlStorage implements StorageInterface {
     @Override
     public synchronized boolean syncPlayerData(UUID playerId) {
         String sql = "SELECT cumulative, last_reward, streak, last_streak_date, last_sync " +
-                "FROM player_data WHERE uuid = ?";
+                "FROM " + tableName + " WHERE uuid = ?";
         try {
             reconnectIfNeeded();
             try (PreparedStatement pstmt = connection.prepareStatement(sql)) {
@@ -309,6 +312,37 @@ public class MySqlStorage implements StorageInterface {
             } catch (SQLException e) {
                 plugin.getLogger().severe("MySQLデータベース接続のクローズに失敗しました: " + e.getMessage());
             }
+        }
+    }
+    
+    @Override
+    public synchronized boolean deletePlayerData(UUID playerId) {
+        String sql = "DELETE FROM " + tableName + " WHERE uuid = ?";
+        try {
+            reconnectIfNeeded();
+            try (PreparedStatement pstmt = connection.prepareStatement(sql)) {
+                pstmt.setString(1, playerId.toString());
+                int rowsAffected = pstmt.executeUpdate();
+                return rowsAffected > 0;
+            }
+        } catch (SQLException e) {
+            plugin.getLogger().severe("プレイヤーデータの削除に失敗しました: " + e.getMessage());
+            return false;
+        }
+    }
+    
+    @Override
+    public synchronized boolean deleteAllPlayerData() {
+        String sql = "TRUNCATE TABLE " + tableName;
+        try {
+            reconnectIfNeeded();
+            try (Statement stmt = connection.createStatement()) {
+                stmt.execute(sql);
+                return true;
+            }
+        } catch (SQLException e) {
+            plugin.getLogger().severe("全プレイヤーデータの削除に失敗しました: " + e.getMessage());
+            return false;
         }
     }
 }

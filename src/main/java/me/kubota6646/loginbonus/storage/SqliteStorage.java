@@ -242,4 +242,29 @@ public class SqliteStorage implements StorageInterface {
         // SQLiteは単一サーバー用のため、同期は不要
         return false;
     }
+    
+    @Override
+    public synchronized boolean deletePlayerData(UUID playerId) {
+        String sql = "DELETE FROM player_data WHERE uuid = ?";
+        try (PreparedStatement pstmt = connection.prepareStatement(sql)) {
+            pstmt.setString(1, playerId.toString());
+            int rowsAffected = pstmt.executeUpdate();
+            return rowsAffected > 0;
+        } catch (SQLException e) {
+            plugin.getLogger().severe("プレイヤーデータの削除に失敗しました: " + e.getMessage());
+            return false;
+        }
+    }
+    
+    @Override
+    public synchronized boolean deleteAllPlayerData() {
+        String sql = "DELETE FROM player_data";
+        try (Statement stmt = connection.createStatement()) {
+            stmt.execute(sql);
+            return true;
+        } catch (SQLException e) {
+            plugin.getLogger().severe("全プレイヤーデータの削除に失敗しました: " + e.getMessage());
+            return false;
+        }
+    }
 }

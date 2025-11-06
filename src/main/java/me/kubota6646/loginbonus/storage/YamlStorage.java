@@ -129,4 +129,35 @@ public class YamlStorage implements StorageInterface {
     public void reload() {
         playerData = YamlConfiguration.loadConfiguration(playerDataFile);
     }
+    
+    @Override
+    public boolean deletePlayerData(UUID playerId) {
+        String key = playerId.toString();
+        if (playerData.contains(key)) {
+            playerData.set(key, null);
+            try {
+                playerData.save(playerDataFile);
+                return true;
+            } catch (IOException e) {
+                plugin.getLogger().severe("プレイヤーデータの削除に失敗しました: " + e.getMessage());
+                return false;
+            }
+        }
+        return false;
+    }
+    
+    @Override
+    public boolean deleteAllPlayerData() {
+        try {
+            // 全てのキーを削除
+            for (String key : playerData.getKeys(false)) {
+                playerData.set(key, null);
+            }
+            playerData.save(playerDataFile);
+            return true;
+        } catch (IOException e) {
+            plugin.getLogger().severe("全プレイヤーデータの削除に失敗しました: " + e.getMessage());
+            return false;
+        }
+    }
 }
