@@ -122,10 +122,6 @@ public class YamlStorage implements StorageInterface {
         return false;
     }
     
-    public FileConfiguration getPlayerData() {
-        return playerData;
-    }
-    
     public void reload() {
         playerData = YamlConfiguration.loadConfiguration(playerDataFile);
     }

@@ -19,6 +19,12 @@ Minecraft Bukkitプラグインで、ログインボーナスシステムを実�
 ### ストレージと同期
 - **複数のストレージオプション**: YAMLファイル、SQLiteデータベース、MySQLデータベースから選択可能。
 - **プレイヤーデータ同期**: MySQLストレージを使用する場合、複数のサーバー間でプレイヤーデータを同期。`/rewardsync` コマンドで手動同期、またはプレイヤーログイン時に自動同期。
+- **データ移行**: `/rewardmigrate` コマンドでストレージタイプ間（YAML、SQLite、MySQL）のデータ移行が可能。
+- **MySQLテーブル名のカスタマイズ**: config.ymlでMySQLのテーブル名を変更可能。
+
+### データ管理
+- **プレイヤーデータ削除**: 特定のプレイヤーまたは全プレイヤーのデータを削除可能。
+- **自動日付変更検知**: ログイン中に日付が変わった場合、自動的に新しい日のトラッキングを開始。
 
 ### 設定
 - **設定可能な報酬**: `config.yml`で報酬アイテム、数量、メッセージを定義します。
@@ -33,17 +39,38 @@ Minecraft Bukkitプラグインで、ログインボーナスシステムを実�
 - `/rewardstreak`  
   現在のストリーク日数を確認します。
 
-### 管理者コマンド（OP権限が必要）
+### 管理者コマンド（OP権限または `loginbonus.admin` 権限が必要）
 - `/rewardreload`  
   サーバーを再起動せずに設定ファイル（`config.yml`、`playerdata.yml`、`message.yml`）をリロードします。
+  
 - `/rewardforcegive <player>`  
   指定されたプレイヤーにプレイ時間に関係なく強制的に報酬を付与します。テストや手動報酬に便利です。
+  
 - `/rewardsetstreak <player> <days>`  
-  指定されたプレイヤーのストリークカウントを指定された日数に設定します。最後のストリーク日付はリセットしません。
+  指定されたプレイヤーのストリークカウントを指定された日数に設定します。最後のストリーク日付も現在の日付に更新されます。
+  
 - `/rewardresetplaytime <player>`  
   指定されたプレイヤーの累積プレイ時間を0にリセットし、ボスバーを再開始します。
-- `/rewardsync`  
+  
+- `/rewardsync [player]`  
   MySQLストレージを使用している場合、プレイヤーデータをデータベースから同期します。複数のサーバー間でデータを更新する際に使用。
+  - 引数なし: 自分自身のデータを同期
+  - `[player]`指定: 指定したプレイヤーのデータを同期
+  
+- `/rewardmigrate <yaml|sqlite|mysql> <yaml|sqlite|mysql>`  
+  プレイヤーデータをストレージタイプ間で移行します。全てのプレイヤーデータが移行されます。
+  - 例: `/rewardmigrate yaml mysql` - YAMLからMySQLへ移行
+  - 例: `/rewardmigrate sqlite mysql` - SQLiteからMySQLへ移行
+  - 例: `/rewardmigrate mysql yaml` - MySQLからYAMLへ移行
+  
+- `/rewarddeleteplayer <player>`  
+  指定されたプレイヤーのデータを完全に削除します（累積時間、ストリーク、最終報酬日など）。
+  - オンラインの場合はトラッキングもキャンセルされます
+  
+- `/rewarddeleteall confirm`  
+  全てのプレイヤーデータを削除します。**この操作は取り消せません。**
+  - 安全のため、`confirm`パラメータの入力が必須です
+  - オンラインの全プレイヤーのトラッキングがキャンセルされます
 
 ## 設定ファイル
 
@@ -72,6 +99,7 @@ mysql:
   host: localhost
   port: 3306
   database: loginbonus
+  table-name: player_data  # テーブル名（デフォルト: player_data）
   username: root
   password: password
   # 接続プール設定
@@ -157,7 +185,15 @@ boss-bar-style: SOLID
 ```
 
 ### message.yml
-`plugins/LoginBonus/message.yml`にあります。プラグインメッセージをカスタマイズします。
+`plugins/LoginBonus/message.yml`にあります。**プラグインの全てのメッセージをカスタマイズできます**。
+
+このファイルでは50以上のメッセージが設定可能で、以下のカテゴリに分類されています：
+- 報酬関連メッセージ
+- コマンド権限・使用法メッセージ
+- 一般的なエラーメッセージ
+- 各コマンド専用メッセージ
+
+プレースホルダーのサポート: `%player%`, `%streak%`, `%days%`, `%count%`, `%from%`, `%to%`, `%type%`, `%error%`, `%old%`, `%new%`, `%command%`
 
 例:
 ```yaml
@@ -166,19 +202,32 @@ boss-bar-style: SOLID
 # ================================
 # このファイルでプラグインのメッセージをカスタマイズできます。
 # Minecraftの装飾コードを使用可能（例: &e = 黄色、&c = 赤色）。
+# プレースホルダー: %player%, %streak%, %days%, %count%, %from%, %to%, %type%
 
 # ================================
 # 報酬関連メッセージ
 # ================================
-# 報酬を受け取った時のメッセージ
 reward-message: "&e報酬を受け取りました！"
+reward-synced: "&aデータが同期されました。"
 
-# 既に報酬を受け取っている場合のメッセージ
-already-claimed-message: "&c今日は既に報酬を受け取っています。"
+# ================================
+# コマンド権限・使用法メッセージ
+# ================================
+no-permission: "&cこのコマンドはOP権限が必要です。"
+no-permission-admin: "&cこのコマンドを実行する権限がありません。"
+player-only: "&cこのコマンドはプレイヤーのみ実行可能です。"
 
-# 報酬を受け取る条件を満たしていない場合のメッセージ
-not-enough-time-message: "&cまだ報酬を受け取る条件を満たしていません。"
+# ================================
+# 一般的なエラーメッセージ
+# ================================
+player-not-found: "&cプレイヤー '%player%' が見つかりません。"
+invalid-number: "&cストリークは数値で指定してください。"
+number-must-be-positive: "&cストリークは0以上で指定してください。"
+
+# ... 他50以上のメッセージ設定が可能 ...
 ```
+
+完全なメッセージリストは `src/main/resources/message.yml` を参照してください。
 
 ### playerdata.yml / playerdata.db / MySQLテーブル
 YAMLストレージの場合: `plugins/LoginBonus/playerdata.yml`にあります。プレイヤーデータ（累積時間、ストリーク、最後の報酬）を保存します。手動で編集しないでください。
@@ -199,9 +248,19 @@ MySQLストレージの場合: 指定されたMySQLデータベースに`playerd
 
 ## パーミッション
 
-- 報酬を受け取る為に必要な権限はありません。
-- コマンドは、`/rewardstreak`コマンドのみ権限が付与されていないプレイヤーでも実行できます。
-- `/rewardstreak`以外のコマンドを実行するためには、`OP権限` または `lgb01.admin` が必要です。
+- **報酬を受け取る**: 権限不要（全プレイヤーが自動的に受け取れます）
+- **`/rewardstreak`**: 権限不要（全プレイヤーが使用可能）
+- **管理者コマンド**: `OP権限` または `loginbonus.admin` が必要
+  - `/rewardreload` - `loginbonus.reload`
+  - `/rewardforcegive` - `loginbonus.admin`
+  - `/rewardsetstreak` - `loginbonus.admin`
+  - `/rewardresetplaytime` - `loginbonus.admin`
+  - `/rewardsync` - `loginbonus.admin`
+  - `/rewardmigrate` - `loginbonus.admin`
+  - `/rewarddeleteplayer` - `loginbonus.admin`
+  - `/rewarddeleteall` - `loginbonus.admin`
+
+**注意**: バージョン1.3.1以降、権限名が `lgb01.*` から `loginbonus.*` に変更されました。既存の権限設定を更新してください。
 
 ## 互換性
 
@@ -227,5 +286,22 @@ MySQLストレージの場合: 指定されたMySQLデータベースに`playerd
 
 ## 貢献者
 このプラグインの開発では、GitHub Copilotがコード生成とドキュメント支援を提供しました。
+
+## 更新履歴
+
+### バージョン 1.3.1 (最新)
+- ✨ **新機能**: ログイン中の日付変更時に自動的にトラッキングを再開
+- ✨ **新機能**: message.yml自動更新（既存のカスタマイズを保持）
+- ✨ **新機能**: 全50以上のメッセージを message.yml でカスタマイズ可能
+- ✨ **新機能**: プレースホルダーサポート（%player%, %streak%, %count% など）
+- ✨ **新機能**: MySQLテーブル名をconfig.ymlで設定可能
+- ✨ **新機能**: YAML/SQLite/MySQL間の相互データ移行サポート
+- ✨ **新機能**: `/rewarddeleteplayer` コマンド - 特定プレイヤーのデータ削除
+- ✨ **新機能**: `/rewarddeleteall` コマンド - 全プレイヤーデータ削除（確認必須）
+- ✨ **新機能**: `/rewardmigrate` コマンドでMySQLへの移行をサポート
+- 🔧 **変更**: 権限名を `lgb01.*` から `loginbonus.*` に変更
+- 🔧 **変更**: `/rewardsync` コマンドで他プレイヤーの同期が可能に
+- 🔧 **最適化**: 日付変更チェックを30秒間隔に変更（パフォーマンス改善）
+- 🐛 **修正**: ログイン中に0時を過ぎても報酬カウントが再開されない問題を修正
 
 
