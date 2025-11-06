@@ -7,10 +7,12 @@ import org.bukkit.command.PluginCommand;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.plugin.java.JavaPlugin;
+import org.bukkit.scheduler.BukkitRunnable;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.StandardCopyOption;
+import java.time.LocalDate;
 
 public class Main extends JavaPlugin {
 
@@ -18,6 +20,7 @@ public class Main extends JavaPlugin {
     private FileConfiguration messages;
     private File messagesFile;
     private EventListener eventListener;
+    private String lastCheckedDate; // 最後にチェックした日付
 
     @Override
     public void onEnable() {
@@ -73,6 +76,10 @@ public class Main extends JavaPlugin {
         if (rewardSyncCmd != null) {
             rewardSyncCmd.setExecutor(new RewardSyncCommand(this));
         }
+
+        // 日付変更チェックタスクを開始
+        lastCheckedDate = LocalDate.now().toString();
+        startMidnightCheckTask();
 
         getLogger().info("lgb01プラグインが有効化されました。");
     }
@@ -133,10 +140,12 @@ public class Main extends JavaPlugin {
     }
 
     private void saveDefaultMessages() {
-        if (!messagesFile.exists()) {
-            try {
+        try {
+            createDirectories(messagesFile, "message.yml");
+            
+            if (!messagesFile.exists()) {
+                // ファイルが存在しない場合は、リソースから新規作成
                 java.io.InputStream resourceStream = getResource("message.yml");
-                createDirectories(messagesFile, "message.yml");
                 if (resourceStream != null) {
                     Files.copy(resourceStream, messagesFile.toPath(), StandardCopyOption.REPLACE_EXISTING);
                 } else {
@@ -146,14 +155,53 @@ public class Main extends JavaPlugin {
                     }
                     getLogger().info("message.yml リソースが見つからないため、空のファイルを作成しました。");
                 }
-            } catch (IOException e) {
-                getLogger().severe("message.yml の作成に失敗しました: " + e.getMessage());
+            } else {
+                // ファイルが既に存在する場合は、リソースの新しいメッセージを追加
+                java.io.InputStream resourceStream = getResource("message.yml");
+                if (resourceStream != null) {
+                    FileConfiguration defaultMessages = YamlConfiguration.loadConfiguration(new java.io.InputStreamReader(resourceStream, java.nio.charset.StandardCharsets.UTF_8));
+                    FileConfiguration existingMessages = YamlConfiguration.loadConfiguration(messagesFile);
+                    
+                    boolean updated = false;
+                    for (String key : defaultMessages.getKeys(false)) {
+                        if (!existingMessages.contains(key)) {
+                            existingMessages.set(key, defaultMessages.get(key));
+                            updated = true;
+                        }
+                    }
+                    
+                    if (updated) {
+                        existingMessages.save(messagesFile);
+                        getLogger().info("message.yml に新しいメッセージが追加されました。");
+                    }
+                }
             }
+        } catch (IOException e) {
+            getLogger().severe("message.yml の処理に失敗しました: " + e.getMessage());
         }
         reloadMessages();
     }
 
     public EventListener getEventListener() {
         return eventListener;
+    }
+
+    private void startMidnightCheckTask() {
+        // 毎秒、日付が変わったかチェック
+        new BukkitRunnable() {
+            @Override
+            public void run() {
+                String currentDate = LocalDate.now().toString();
+                if (!currentDate.equals(lastCheckedDate)) {
+                    // 日付が変わった！
+                    lastCheckedDate = currentDate;
+                    getLogger().info("日付が変わりました: " + currentDate);
+                    // オンラインのプレイヤーで既に報酬を受け取っているプレイヤーの追跡を再開
+                    if (eventListener != null) {
+                        eventListener.restartTrackingForNewDay();
+                    }
+                }
+            }
+        }.runTaskTimer(this, 0L, 20L); // 毎秒実行
     }
 }

@@ -410,4 +410,17 @@ public class EventListener implements Listener {
         int seconds = totalSeconds % 60;
         return String.format("%02d:%02d", minutes, seconds);
     }
+
+    public void restartTrackingForNewDay() {
+        // オンラインの全プレイヤーに対して、新しい日のトラッキングを開始
+        for (Player player : plugin.getServer().getOnlinePlayers()) {
+            UUID playerId = player.getUniqueId();
+            // 既にトラッキング中のプレイヤーは、タスク内で日付変更が処理されるのでスキップ
+            if (updateTasks.containsKey(playerId)) {
+                continue;
+            }
+            // トラッキングされていないプレイヤー（既に報酬を受け取ったプレイヤー）のトラッキングを再開
+            startTracking(player);
+        }
+    }
 }
