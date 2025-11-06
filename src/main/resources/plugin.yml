@@ -1,5 +1,5 @@
 name: LoginBonus
-version: 1.3.1
+version: 1.3.2
 main: me.kubota6646.loginbonus.Main
 api-version: 1.19
 author: kubota6646
@@ -49,4 +49,5 @@ permissions:
   loginbonus.admin:
     description: "管理者コマンドを使用する権限"
     default: op
+
 
