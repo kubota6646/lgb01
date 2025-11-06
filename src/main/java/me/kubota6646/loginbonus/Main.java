@@ -142,6 +142,21 @@ public class Main extends JavaPlugin {
     public FileConfiguration getMessages() {
         return messages;
     }
+    
+    /**
+     * メッセージを取得し、プレースホルダーを置換する
+     * @param key メッセージキー
+     * @param defaultMessage デフォルトメッセージ
+     * @param replacements プレースホルダーと置換値のペア（例: "%player%", "PlayerName"）
+     * @return 色コード変換済みのメッセージ
+     */
+    public String getMessage(String key, String defaultMessage, String... replacements) {
+        String message = messages.getString(key, defaultMessage);
+        for (int i = 0; i < replacements.length - 1; i += 2) {
+            message = message.replace(replacements[i], replacements[i + 1]);
+        }
+        return org.bukkit.ChatColor.translateAlternateColorCodes('&', message);
+    }
 
     private void reloadMessages() {
         messages = YamlConfiguration.loadConfiguration(messagesFile);
