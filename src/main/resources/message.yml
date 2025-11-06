@@ -3,7 +3,7 @@
 # ================================
 # このファイルでプラグインのメッセージをカスタマイズできます。
 # Minecraftの装飾コードを使用可能（例: &e = 黄色、&c = 赤色）。
-# プレースホルダー: %player%, %streak%, %days%, %count%, %from%, %to%, %type%
+# プレースホルダー: %player%, %streak%, %days%, %count%, %from%, %to%, %type%, %error%, %old%, %new%, %command%
 
 # ================================
 # 報酬関連メッセージ
@@ -95,4 +95,5 @@ delete-player-not-exist: "&eプレイヤー '%player%' のデータは存在し�
 delete-all-warning: "&e警告: このコマンドは全てのプレイヤーデータを削除します。"
 delete-all-confirmation: "&e実行するには /%command% confirm と入力してください。"
 delete-all-success: "&a全てのプレイヤーデータを削除しました。"
+
 delete-all-failed: "&cデータの削除に失敗しました。"
