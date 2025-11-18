@@ -38,8 +38,9 @@ config-reloaded: "&a設定をリロードしました。"
 # ================================
 # rewardforcegive コマンド
 # ================================
-force-give-usage: "&c使用法: /%command% <player>"
+force-give-usage: "&c使用法: /%command% <player|everyone>"
 force-give-success: "&aプレイヤー '%player%' に今日の報酬を強制付与しました。"
+force-give-everyone-success: "&a全プレイヤー (%count% 人) に今日の報酬を強制付与しました。"
 
 # ================================
 # rewardsetstreak コマンド
@@ -73,7 +74,7 @@ migrate-error: "&cデータ移行中にエラーが発生しました: %error%"
 # ================================
 sync-mysql-only: "&e同期機能はMySQLストレージでのみ使用できます。"
 sync-current-type: "&e現在のストレージタイプ: %type%"
-sync-console-usage: "&cコンソールからはプレイヤー名を指定してください: /rewardsync <player>"
+sync-console-usage: "&cコンソールからはプレイヤー名を指定してください: /rewardsync <player|everyone>"
 sync-starting: "&e%player% のデータを同期しています..."
 sync-failed: "&cデータの同期に失敗しました。"
 sync-error: "&cデータの同期中にエラーが発生しました。"
@@ -81,6 +82,7 @@ sync-success: "&a%player% のデータを同期しました。"
 sync-already-latest: "&a%player% のデータは既に最新です。"
 sync-cumulative: "&7累積時間: %old% → %new%"
 sync-streak: "&7ストリーク: %old% → %new%"
+sync-everyone-started: "&e全プレイヤー (%count% 人) のデータ同期を開始しました。"
 
 # ================================
 # rewarddeleteplayer コマンド

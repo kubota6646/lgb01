@@ -208,17 +208,24 @@ public class Main extends JavaPlugin {
     public EventListener getEventListener() {
         return eventListener;
     }
+    
+    /**
+     * 現在のリセット日付を取得（外部から呼び出し可能）
+     * @return リセット日付文字列
+     */
+    public String getResetDate() {
+        return getCurrentResetDate();
+    }
 
     private void startMidnightCheckTask() {
-        // 30秒ごとに、日付が変わったかチェック
+        // 30秒ごとに、リセット時刻が過ぎたかチェック
         new BukkitRunnable() {
             @Override
             public void run() {
-                String currentDate = LocalDate.now().toString();
-                if (!currentDate.equals(lastCheckedDate)) {
-                    // 日付が変わった！
-                    lastCheckedDate = currentDate;
-                    getLogger().info("日付が変わりました: " + currentDate);
+                if (shouldResetToday()) {
+                    // リセット時刻が過ぎた！
+                    lastCheckedDate = getCurrentResetDate();
+                    getLogger().info("リセット時刻になりました: " + lastCheckedDate);
                     // オンラインのプレイヤーで既に報酬を受け取っているプレイヤーの追跡を再開
                     if (eventListener != null) {
                         eventListener.restartTrackingForNewDay();
@@ -226,5 +233,44 @@ public class Main extends JavaPlugin {
                 }
             }
         }.runTaskTimer(this, 0L, 600L); // 30秒ごとに実行 (600 ticks = 30 seconds)
+    }
+    
+    /**
+     * 現在のリセット日付を取得（リセット時刻を考慮）
+     * @return リセット日付文字列（YYYY-MM-DD HH:mm形式）
+     */
+    private String getCurrentResetDate() {
+        String resetTimeStr = getConfig().getString("reset-time", "00:00");
+        String[] timeParts = resetTimeStr.split(":");
+        int resetHour = 0;
+        int resetMinute = 0;
+        
+        try {
+            resetHour = Integer.parseInt(timeParts[0]);
+            if (timeParts.length > 1) {
+                resetMinute = Integer.parseInt(timeParts[1]);
+            }
+        } catch (NumberFormatException e) {
+            getLogger().warning("無効なリセット時刻形式: " + resetTimeStr + " - デフォルト(00:00)を使用します");
+        }
+        
+        java.time.LocalDateTime now = java.time.LocalDateTime.now();
+        java.time.LocalDateTime resetTime = now.withHour(resetHour).withMinute(resetMinute).withSecond(0);
+        
+        // 現在時刻がリセット時刻より前の場合、前日のリセット日付を返す
+        if (now.isBefore(resetTime)) {
+            resetTime = resetTime.minusDays(1);
+        }
+        
+        return resetTime.format(java.time.format.DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm"));
+    }
+    
+    /**
+     * 今日リセットすべきかチェック
+     * @return リセットすべき場合true
+     */
+    private boolean shouldResetToday() {
+        String currentResetDate = getCurrentResetDate();
+        return !currentResetDate.equals(lastCheckedDate);
     }
 }

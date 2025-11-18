@@ -40,8 +40,21 @@ public record RewardSyncCommand(Main plugin) implements CommandExecutor {
             return true;
         }
         
-        // 引数がある場合は指定されたプレイヤーを同期
+        // 引数がある場合は指定されたプレイヤーまたは全員を同期
         String targetName = args[0];
+        
+        // "everyone" キーワードで全プレイヤーを対象
+        if (targetName.equalsIgnoreCase("everyone")) {
+            int playerCount = 0;
+            for (Player onlinePlayer : Bukkit.getOnlinePlayers()) {
+                syncPlayerData(sender, onlinePlayer, storage);
+                playerCount++;
+            }
+            sender.sendMessage(plugin.getMessage("sync-everyone-started", "&e全プレイヤー (%count% 人) のデータ同期を開始しました。",
+                "%count%", String.valueOf(playerCount)));
+            return true;
+        }
+        
         Player target = Bukkit.getPlayer(targetName);
         
         if (target == null) {

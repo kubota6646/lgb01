@@ -46,8 +46,8 @@ public class EventListener implements Listener {
             plugin.getStorage().syncPlayerData(playerId);
         }
 
-        // 今日の日付を取得
-        String today = LocalDate.now().toString();
+        // 現在のリセット日付を取得
+        String today = plugin.getResetDate();
         currentDates.put(playerId, today);
 
         // 累積ログイン時間を取得 (デフォルト0.0)
@@ -97,7 +97,7 @@ public class EventListener implements Listener {
                 int currentRemainingSeconds = (int) Math.ceil(Math.max(currentRemaining, 0.0) * 60);
 
                 // 日付変更チェック
-                String currentDate = LocalDate.now().toString();
+                String currentDate = plugin.getResetDate();
                 if (!currentDate.equals(currentDates.get(playerId))) {
                     // 日付が変わったので、新しいカウントを開始
                     currentDates.put(playerId, currentDate);
@@ -368,7 +368,7 @@ public class EventListener implements Listener {
                 int currentRemainingSeconds = (int) Math.ceil(Math.max(currentRemaining, 0.0) * 60);
 
                 // 日付変更チェック
-                String currentDate = LocalDate.now().toString();
+                String currentDate = plugin.getResetDate();
                 if (!currentDate.equals(currentDates.get(playerId))) {
                     // 日付が変わったので、新しいカウントを開始
                     currentDates.put(playerId, currentDate);
