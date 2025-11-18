@@ -86,7 +86,9 @@ public class Main extends JavaPlugin {
         }
 
         // 日付変更チェックタスクを開始
-        lastCheckedDate = LocalDate.now().toString();
+        String resetTime = getConfig().getString("reset-time", "00:00");
+        getLogger().info("リセット時刻を " + resetTime + " に設定しました。");
+        lastCheckedDate = getCurrentResetDate();
         startMidnightCheckTask();
 
         getLogger().info("lgb01プラグインが有効化されました。");
