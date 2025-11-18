@@ -218,7 +218,22 @@ public class Main extends JavaPlugin {
     }
 
     private void startMidnightCheckTask() {
-        // 30秒ごとに、リセット時刻が過ぎたかチェック
+        // 設定されたチェック間隔でリセット時刻が過ぎたかチェック
+        int checkIntervalSeconds = getConfig().getInt("reset-check-interval", 30);
+        
+        // 最小5秒、最大3600秒（1時間）に制限
+        if (checkIntervalSeconds < 5) {
+            getLogger().warning("reset-check-interval が小さすぎます（" + checkIntervalSeconds + "秒）。最小値の5秒を使用します。");
+            checkIntervalSeconds = 5;
+        } else if (checkIntervalSeconds > 3600) {
+            getLogger().warning("reset-check-interval が大きすぎます（" + checkIntervalSeconds + "秒）。最大値の3600秒（1時間）を使用します。");
+            checkIntervalSeconds = 3600;
+        }
+        
+        long checkIntervalTicks = checkIntervalSeconds * 20L; // 秒をティックに変換（1秒 = 20ティック）
+        
+        getLogger().info("リセット時刻チェック間隔: " + checkIntervalSeconds + "秒ごと");
+        
         new BukkitRunnable() {
             @Override
             public void run() {
@@ -232,7 +247,7 @@ public class Main extends JavaPlugin {
                     }
                 }
             }
-        }.runTaskTimer(this, 0L, 600L); // 30秒ごとに実行 (600 ticks = 30 seconds)
+        }.runTaskTimer(this, 0L, checkIntervalTicks);
     }
     
     /**
