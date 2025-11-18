@@ -17,12 +17,28 @@ public record RewardResetPlaytimeCommand(Main plugin) implements CommandExecutor
         }
 
         if (args.length != 1) {
-            sender.sendMessage(plugin.getMessage("reset-playtime-usage", "&c使用法: /%command% <player>",
+            sender.sendMessage(plugin.getMessage("reset-playtime-usage", "&c使用法: /%command% <player|everyone>",
                 "%command%", label));
             return true;
         }
 
         String playerName = args[0];
+        
+        // "everyone" キーワードで全プレイヤーを対象
+        if (playerName.equalsIgnoreCase("everyone")) {
+            int playerCount = 0;
+            for (Player onlinePlayer : Bukkit.getOnlinePlayers()) {
+                plugin.getStorage().setCumulative(onlinePlayer.getUniqueId(), 0.0);
+                plugin.getStorage().setLastReward(onlinePlayer.getUniqueId(), null);
+                plugin.getEventListener().startTrackingForPlayer(onlinePlayer.getUniqueId());
+                playerCount++;
+            }
+            plugin.getStorage().saveAsync().join();
+            sender.sendMessage(plugin.getMessage("reset-playtime-everyone-success", "&a全プレイヤー (%count% 人) の累積プレイ時間をリセットしました。",
+                "%count%", String.valueOf(playerCount)));
+            return true;
+        }
+
         Player target = Bukkit.getPlayer(playerName);
         if (target == null) {
             sender.sendMessage(plugin.getMessage("player-not-found", "&cプレイヤー '%player%' が見つかりません。",

@@ -14,24 +14,24 @@ commands:
     usage: "/<command>"
     permission: "loginbonus.reload"
   rewardforcegive:
-    description: "指定プレイヤーに今日の報酬を強制付与するコマンド（OPのみ）"
-    usage: "/<command> <player>"
+    description: "指定プレイヤーまたは全員に今日の報酬を強制付与するコマンド（OPのみ）"
+    usage: "/<command> <player|everyone>"
     permission: "loginbonus.admin"
   rewardsetstreak:
-    description: "指定プレイヤーのストリーク日数を編集するコマンド（OPのみ）"
-    usage: "/<command> <player> <streak>"
+    description: "指定プレイヤーまたは全員のストリーク日数を編集するコマンド（OPのみ）"
+    usage: "/<command> <player|everyone> <streak>"
     permission: "loginbonus.admin"
   rewardresetplaytime:
-    description: "指定プレイヤーの累積プレイ時間をリセットするコマンド（OPのみ）"
-    usage: "/<command> <player>"
+    description: "指定プレイヤーまたは全員の累積プレイ時間をリセットするコマンド（OPのみ）"
+    usage: "/<command> <player|everyone>"
     permission: "loginbonus.admin"
   rewardmigrate:
-    description: "プレイヤーデータをYAMLとSQLite間で移行するコマンド（OPのみ）"
-    usage: "/<command> <from> <to>"
+    description: "プレイヤーデータをストレージ間で移行するコマンド（OPのみ）"
+    usage: "/<command> <yaml|sqlite|mysql> <yaml|sqlite|mysql>"
     permission: "loginbonus.admin"
   rewardsync:
     description: "データベースからプレイヤーデータを同期するコマンド（OPのみ、MySQLのみ）"
-    usage: "/<command> [player]"
+    usage: "/<command> [player|everyone]"
     permission: "loginbonus.admin"
   rewarddeleteplayer:
     description: "指定プレイヤーのデータを削除するコマンド（OPのみ）"

@@ -18,19 +18,13 @@ public record RewardSetStreakCommand(Main plugin) implements CommandExecutor {
         }
 
         if (args.length != 2) {
-            sender.sendMessage(plugin.getMessage("set-streak-usage", "&c使用法: /%command% <player> <streak>",
+            sender.sendMessage(plugin.getMessage("set-streak-usage", "&c使用法: /%command% <player|everyone> <streak>",
                 "%command%", label));
             return true;
         }
 
         String playerName = args[0];
-        Player target = Bukkit.getPlayer(playerName);
-        if (target == null) {
-            sender.sendMessage(plugin.getMessage("player-not-found", "&cプレイヤー '%player%' が見つかりません。",
-                "%player%", playerName));
-            return true;
-        }
-
+        
         int streak;
         try {
             streak = Integer.parseInt(args[1]);
@@ -41,6 +35,27 @@ public record RewardSetStreakCommand(Main plugin) implements CommandExecutor {
 
         if (streak < 0) {
             sender.sendMessage(plugin.getMessage("number-must-be-positive", "&cストリークは0以上で指定してください。"));
+            return true;
+        }
+
+        // "everyone" キーワードで全プレイヤーを対象
+        if (playerName.equalsIgnoreCase("everyone")) {
+            int playerCount = 0;
+            for (Player onlinePlayer : Bukkit.getOnlinePlayers()) {
+                plugin.getStorage().setStreak(onlinePlayer.getUniqueId(), streak);
+                plugin.getStorage().setLastStreakDate(onlinePlayer.getUniqueId(), LocalDate.now().toString());
+                playerCount++;
+            }
+            plugin.savePlayerDataAsync();
+            sender.sendMessage(plugin.getMessage("set-streak-everyone-success", "&a全プレイヤー (%count% 人) のストリークを %streak% 日に設定しました。",
+                "%count%", String.valueOf(playerCount), "%streak%", String.valueOf(streak)));
+            return true;
+        }
+
+        Player target = Bukkit.getPlayer(playerName);
+        if (target == null) {
+            sender.sendMessage(plugin.getMessage("player-not-found", "&cプレイヤー '%player%' が見つかりません。",
+                "%player%", playerName));
             return true;
         }
 

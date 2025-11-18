@@ -45,14 +45,16 @@ force-give-everyone-success: "&a全プレイヤー (%count% 人) に今日の報
 # ================================
 # rewardsetstreak コマンド
 # ================================
-set-streak-usage: "&c使用法: /%command% <player> <streak>"
+set-streak-usage: "&c使用法: /%command% <player|everyone> <streak>"
 set-streak-success: "&aプレイヤー '%player%' のストリークを %streak% 日に設定しました。"
+set-streak-everyone-success: "&a全プレイヤー (%count% 人) のストリークを %streak% 日に設定しました。"
 
 # ================================
 # rewardresetplaytime コマンド
 # ================================
-reset-playtime-usage: "&c使用法: /%command% <player>"
+reset-playtime-usage: "&c使用法: /%command% <player|everyone>"
 reset-playtime-success: "&aプレイヤー '%player%' の累積プレイ時間をリセットしました。"
+reset-playtime-everyone-success: "&a全プレイヤー (%count% 人) の累積プレイ時間をリセットしました。"
 
 # ================================
 # rewardmigrate コマンド
