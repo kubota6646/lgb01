@@ -412,14 +412,12 @@ public class EventListener implements Listener {
     }
 
     public void restartTrackingForNewDay() {
-        // オンラインの全プレイヤーに対して、新しい日のトラッキングを開始
+        // オンラインの全プレイヤーに対して、トラッキングを再開
         for (Player player : plugin.getServer().getOnlinePlayers()) {
             UUID playerId = player.getUniqueId();
-            // 既にトラッキング中のプレイヤーは、タスク内で日付変更が処理されるのでスキップ
-            if (updateTasks.containsKey(playerId)) {
-                continue;
-            }
-            // トラッキングされていないプレイヤー（既に報酬を受け取ったプレイヤー）のトラッキングを再開
+            // 既存のトラッキングをキャンセル
+            cancelTasksForPlayer(playerId);
+            // 新しい日のトラッキングを開始
             startTracking(player);
         }
     }

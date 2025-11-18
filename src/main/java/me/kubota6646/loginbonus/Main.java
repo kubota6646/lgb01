@@ -239,9 +239,10 @@ public class Main extends JavaPlugin {
             public void run() {
                 if (shouldResetToday()) {
                     // リセット時刻が過ぎた！
+                    String resetTime = getConfig().getString("reset-time", "00:00");
                     lastCheckedDate = getCurrentResetDate();
-                    getLogger().info("リセット時刻になりました: " + lastCheckedDate);
-                    // オンラインのプレイヤーで既に報酬を受け取っているプレイヤーの追跡を再開
+                    getLogger().info("リセット時刻（" + resetTime + "）になりました。全オンラインプレイヤーのトラッキングを再開します。");
+                    // オンラインの全プレイヤーの追跡を再開
                     if (eventListener != null) {
                         eventListener.restartTrackingForNewDay();
                     }

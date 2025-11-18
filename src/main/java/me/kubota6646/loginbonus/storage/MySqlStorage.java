@@ -54,15 +54,25 @@ public class MySqlStorage implements StorageInterface {
             String createTable = "CREATE TABLE IF NOT EXISTS " + tableName + " (" +
                     "uuid VARCHAR(36) PRIMARY KEY," +
                     "cumulative DOUBLE DEFAULT 0.0," +
-                    "last_reward VARCHAR(10)," +
+                    "last_reward VARCHAR(20)," +
                     "streak INT DEFAULT 1," +
-                    "last_streak_date VARCHAR(10)," +
+                    "last_streak_date VARCHAR(20)," +
                     "last_sync BIGINT DEFAULT 0," +
                     "INDEX idx_last_sync (last_sync)" +
                     ") ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;";
             
             try (Statement stmt = connection.createStatement()) {
                 stmt.execute(createTable);
+                
+                // 既存のテーブルのカラムサイズを更新（VARCHAR(10) → VARCHAR(20)）
+                try {
+                    stmt.execute("ALTER TABLE " + tableName + " MODIFY COLUMN last_reward VARCHAR(20)");
+                    stmt.execute("ALTER TABLE " + tableName + " MODIFY COLUMN last_streak_date VARCHAR(20)");
+                    plugin.getLogger().info("MySQLテーブルのカラムサイズを更新しました");
+                } catch (SQLException e) {
+                    // カラムがすでに正しいサイズか、テーブルが新規作成された場合は無視
+                    plugin.getLogger().fine("カラムサイズの更新をスキップしました: " + e.getMessage());
+                }
             }
             
             plugin.getLogger().info("MySQLデータベースに接続しました");

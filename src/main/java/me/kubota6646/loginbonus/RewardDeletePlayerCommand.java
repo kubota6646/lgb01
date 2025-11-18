@@ -42,9 +42,11 @@ public record RewardDeletePlayerCommand(Main plugin) implements CommandExecutor 
             sender.sendMessage(plugin.getMessage("delete-player-success", "&aプレイヤー '%player%' のデータを削除しました。",
                 "%player%", playerName));
             
-            // オンラインの場合はトラッキングもキャンセル
+            // オンラインの場合はトラッキングをキャンセルして再開
             if (target.isOnline() && plugin.getEventListener() != null) {
                 plugin.getEventListener().cancelTasksForPlayer(target.getUniqueId());
+                // データ削除後、トラッキングを再開
+                plugin.getEventListener().startTrackingForPlayer(target.getUniqueId());
             }
         } else {
             sender.sendMessage(plugin.getMessage("delete-player-not-exist", "&eプレイヤー '%player%' のデータは存在しませんでした。",
