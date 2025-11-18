@@ -91,7 +91,7 @@ public class Main extends JavaPlugin {
         lastCheckedDate = getCurrentResetDate();
         startMidnightCheckTask();
 
-        getLogger().info("lgb01プラグインが有効化されました。");
+        getLogger().info("LoginBonusプラグインが有効化されました。");
     }
 
     @Override
@@ -113,7 +113,7 @@ public class Main extends JavaPlugin {
             storage.close();
         }
 
-        getLogger().info("lgb01プラグインが無効化されました。");
+        getLogger().info("LoginBonusプラグインが無効化されました。");
     }
 
     public void reloadConfig() {
