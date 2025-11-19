@@ -36,7 +36,7 @@ public class Main extends JavaPlugin {
             getLogger().warning("無効なストレージタイプ: " + storageType + " - デフォルトの 'yaml' を使用します");
             storageType = "yaml";
         }
-        getLogger().info("ストレージタイプ: " + storageType);
+        getLogger().info("ストレージタイプは " + storageType + " に設定されています。");
         storage = StorageFactory.createStorage(this, storageType);
         storage.initialize();
 
@@ -87,15 +87,18 @@ public class Main extends JavaPlugin {
 
         // 日付変更チェックタスクを開始
         String resetTime = getConfig().getString("reset-time", "00:00");
-        getLogger().info("リセット時刻を " + resetTime + " に設定しました。");
+        getLogger().info("リセット時刻は " + resetTime + " に設定されています。");
         lastCheckedDate = getCurrentResetDate();
         startMidnightCheckTask();
 
         getLogger().info("LoginBonusプラグインが有効化されました。");
+        getLogger().info("全プレイヤーのトラッキングを再開します。");
     }
 
     @Override
     public void onDisable() {
+        getLogger().info("全プレイヤーのトラッキングを停止します。");
+        
         // オンラインのプレイヤーの累積時間を保存
         if (eventListener != null) {
             eventListener.saveAllCumulativeTimes();
@@ -234,7 +237,7 @@ public class Main extends JavaPlugin {
         
         long checkIntervalTicks = checkIntervalSeconds * 20L; // 秒をティックに変換（1秒 = 20ティック）
         
-        getLogger().info("リセット時刻チェック間隔: " + checkIntervalSeconds + "秒ごと");
+        getLogger().info("リセット時刻のチェック間隔は " + checkIntervalSeconds + " 秒です。");
         
         new BukkitRunnable() {
             @Override
