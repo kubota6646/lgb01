@@ -15,6 +15,8 @@ import org.bukkit.inventory.ItemStack;
 import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.scheduler.BukkitTask;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -177,7 +179,15 @@ public class EventListener implements Listener {
             // ストリークを計算
             String lastStreakDateStr = plugin.getStorage().getLastStreakDate(playerId);
             if (lastStreakDateStr != null) {
-                LocalDate lastStreakDate = LocalDate.parse(lastStreakDateStr);
+                LocalDate lastStreakDate;
+                // 日付時刻形式 "YYYY-MM-DD HH:mm" または日付のみ "YYYY-MM-DD" をサポート
+                if (lastStreakDateStr.length() > 10) {
+                    // 日付時刻形式の場合、日付部分のみを抽出
+                    lastStreakDate = LocalDate.parse(lastStreakDateStr.substring(0, 10));
+                } else {
+                    // 日付のみの形式
+                    lastStreakDate = LocalDate.parse(lastStreakDateStr);
+                }
                 LocalDate yesterday = LocalDate.now().minusDays(1);
                 if (lastStreakDate.equals(yesterday)) {
                     streak = plugin.getStorage().getStreak(playerId) + 1;
