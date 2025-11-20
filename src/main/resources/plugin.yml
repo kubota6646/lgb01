@@ -1,5 +1,5 @@
 name: LoginBonus
-version: 1.3.1
+version: 1.3.2
 main: me.kubota6646.loginbonus.Main
 api-version: 1.19
 author: kubota6646
@@ -12,34 +12,44 @@ commands:
   rewardreload:
     description: "設定をリロードするコマンド（OPのみ）"
     usage: "/<command>"
-    permission: "lgb01.reload"
+    permission: "loginbonus.reload"
   rewardforcegive:
-    description: "指定プレイヤーに今日の報酬を強制付与するコマンド（OPのみ）"
-    usage: "/<command> <player>"
-    permission: "lgb01.admin"
+    description: "指定プレイヤーまたは全員に今日の報酬を強制付与するコマンド（OPのみ）"
+    usage: "/<command> <player|everyone>"
+    permission: "loginbonus.admin"
   rewardsetstreak:
-    description: "指定プレイヤーのストリーク日数を編集するコマンド（OPのみ）"
-    usage: "/<command> <player> <streak>"
-    permission: "lgb01.admin"
+    description: "指定プレイヤーまたは全員のストリーク日数を編集するコマンド（OPのみ）"
+    usage: "/<command> <player|everyone> <streak>"
+    permission: "loginbonus.admin"
   rewardresetplaytime:
-    description: "指定プレイヤーの累積プレイ時間をリセットするコマンド（OPのみ）"
-    usage: "/<command> <player>"
-    permission: "lgb01.admin"
+    description: "指定プレイヤーまたは全員の累積プレイ時間をリセットするコマンド（OPのみ）"
+    usage: "/<command> <player|everyone>"
+    permission: "loginbonus.admin"
   rewardmigrate:
-    description: "プレイヤーデータをYAMLとSQLite間で移行するコマンド（OPのみ）"
-    usage: "/<command> <from> <to>"
-    permission: "lgb01.admin"
+    description: "プレイヤーデータをストレージ間で移行するコマンド（OPのみ）"
+    usage: "/<command> <yaml|sqlite|mysql> <yaml|sqlite|mysql>"
+    permission: "loginbonus.admin"
   rewardsync:
     description: "データベースからプレイヤーデータを同期するコマンド（OPのみ、MySQLのみ）"
-    usage: "/<command> [player]"
-    permission: "lgb01.admin"
+    usage: "/<command> [player|everyone]"
+    permission: "loginbonus.admin"
+  rewarddeleteplayer:
+    description: "指定プレイヤーのデータを削除するコマンド（OPのみ）"
+    usage: "/<command> <player>"
+    permission: "loginbonus.admin"
+  rewarddeleteall:
+    description: "全プレイヤーのデータを削除するコマンド（OPのみ）"
+    usage: "/<command> confirm"
+    permission: "loginbonus.admin"
 
 permissions:
-  lgb01.reload:
+  loginbonus.reload:
     description: "設定をリロードする権限"
     default: op
-  lgb01.admin:
+  loginbonus.admin:
     description: "管理者コマンドを使用する権限"
-
     default: op
+
+
+
 

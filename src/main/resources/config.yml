@@ -18,6 +18,7 @@ mysql:
   host: localhost
   port: 3306
   database: loginbonus
+  table-name: player_data
   username: root
   password: password
   # 接続プール設定
@@ -32,6 +33,18 @@ mysql:
 # 報酬を受け取るための累積ログイン時間（分単位）
 # 例: 30 → 30分ログインで報酬
 reward-time: 1
+
+# 累積ログイン時間のリセット時刻（24時間形式、時:分）
+# 例: "00:00" → 0時にリセット、"06:00" → 6時にリセット
+# この時刻に達すると、プレイヤーの累積時間がリセットされ、新しい日として扱われます
+reset-time: "00:00"
+
+# リセット時刻チェック間隔（秒単位）
+# 何秒ごとに現在時刻を確認してリセット時刻に達したかチェックするか
+# 例: 30 → 30秒ごと、60 → 1分ごと、10 → 10秒ごと
+# 注意: 短すぎる間隔はサーバーに負荷をかける可能性があります
+# 重要: 安全のため5秒〜3600秒（1時間）の範囲に自動制限されます
+reset-check-interval: 30
 
 # 報酬アイテムのリスト
 # 各アイテムのMaterial名と個数を指定
@@ -88,6 +101,10 @@ special_multiple_rewards:
 # ================================
 # ボスバー設定
 # ================================
+# ボスバーを表示するかどうか
+# true: 表示する / false: 非表示
+boss-bar-enabled: true
+
 # ボスバーのタイトル
 # %remaining% で残り時間が表示されます
 # Minecraftの装飾コードを使用可能（例: &a = 緑色）
@@ -99,4 +116,5 @@ boss-bar-color: BLUE
 
 # ボスバーのスタイル
 # BarStyleの値: SOLID, SEGMENTED_6, SEGMENTED_10, SEGMENTED_12, SEGMENTED_20
+
 boss-bar-style: SOLID

@@ -3,15 +3,101 @@
 # ================================
 # このファイルでプラグインのメッセージをカスタマイズできます。
 # Minecraftの装飾コードを使用可能（例: &e = 黄色、&c = 赤色）。
+# プレースホルダー: %player%, %streak%, %days%, %count%, %from%, %to%, %type%, %error%, %old%, %new%, %command%
 
 # ================================
 # 報酬関連メッセージ
 # ================================
-# 報酬を受け取った時のメッセージ
 reward-message: "&e報酬を受け取りました！"
+reward-synced: "&aデータが同期されました。"
 
-# 既に報酬を受け取っている場合のメッセージ
-already-claimed-message: "&c今日は既に報酬を受け取っています。"
+# ================================
+# コマンド権限・使用法メッセージ
+# ================================
+no-permission: "&cこのコマンドはOP権限が必要です。"
+no-permission-admin: "&cこのコマンドを実行する権限がありません。"
+player-only: "&cこのコマンドはプレイヤーのみ実行可能です。"
 
-# 報酬を受け取る条件を満たしていない場合のメッセージ
-not-enough-time-message: "&cまだ報酬を受け取る条件を満たしていません。"
+# ================================
+# 一般的なエラーメッセージ
+# ================================
+player-not-found: "&cプレイヤー '%player%' が見つかりません。"
+invalid-number: "&cストリークは数値で指定してください。"
+number-must-be-positive: "&cストリークは0以上で指定してください。"
+
+# ================================
+# rewardstreak コマンド
+# ================================
+current-streak: "&a現在のストリーク: %streak% 日"
+
+# ================================
+# rewardreload コマンド
+# ================================
+config-reloaded: "&a設定をリロードしました。"
+
+# ================================
+# rewardforcegive コマンド
+# ================================
+force-give-usage: "&c使用法: /%command% <player|everyone>"
+force-give-success: "&aプレイヤー '%player%' に今日の報酬を強制付与しました。"
+force-give-everyone-success: "&a全プレイヤー (%count% 人) に今日の報酬を強制付与しました。"
+
+# ================================
+# rewardsetstreak コマンド
+# ================================
+set-streak-usage: "&c使用法: /%command% <player|everyone> <streak>"
+set-streak-success: "&aプレイヤー '%player%' のストリークを %streak% 日に設定しました。"
+set-streak-everyone-success: "&a全プレイヤー (%count% 人) のストリークを %streak% 日に設定しました。"
+
+# ================================
+# rewardresetplaytime コマンド
+# ================================
+reset-playtime-usage: "&c使用法: /%command% <player|everyone>"
+reset-playtime-success: "&aプレイヤー '%player%' の累積プレイ時間をリセットしました。"
+reset-playtime-everyone-success: "&a全プレイヤー (%count% 人) の累積プレイ時間をリセットしました。"
+
+# ================================
+# rewardmigrate コマンド
+# ================================
+migrate-usage: "&c使用法: /%command% <yaml|sqlite|mysql> <yaml|sqlite|mysql>"
+migrate-usage-example: "&e例: /%command% yaml mysql - YAMLからMySQLへ移行"
+migrate-invalid-from: "&c移行元は 'yaml', 'sqlite' または 'mysql' のみ指定可能です。"
+migrate-invalid-to: "&c移行先は 'yaml', 'sqlite' または 'mysql' のみ指定可能です。"
+migrate-same-type: "&c移行元と移行先が同じです。"
+migrate-starting: "&eデータ移行を開始します: %from% -> %to%"
+migrate-no-data: "&e移行するプレイヤーデータが見つかりませんでした。"
+migrate-in-progress: "&e%count% 件のプレイヤーデータを移行中..."
+migrate-success: "&aデータ移行が完了しました。%count% 件のプレイヤーデータを移行しました。"
+migrate-reminder: "&econfig.yml の storage-type を '%type%' に変更して /rewardreload を実行してください。"
+migrate-error: "&cデータ移行中にエラーが発生しました: %error%"
+
+# ================================
+# rewardsync コマンド
+# ================================
+sync-mysql-only: "&e同期機能はMySQLストレージでのみ使用できます。"
+sync-current-type: "&e現在のストレージタイプ: %type%"
+sync-console-usage: "&cコンソールからはプレイヤー名を指定してください: /rewardsync <player|everyone>"
+sync-starting: "&e%player% のデータを同期しています..."
+sync-failed: "&cデータの同期に失敗しました。"
+sync-error: "&cデータの同期中にエラーが発生しました。"
+sync-success: "&a%player% のデータを同期しました。"
+sync-already-latest: "&a%player% のデータは既に最新です。"
+sync-cumulative: "&7累積時間: %old% → %new%"
+sync-streak: "&7ストリーク: %old% → %new%"
+sync-everyone-started: "&e全プレイヤー (%count% 人) のデータ同期を開始しました。"
+
+# ================================
+# rewarddeleteplayer コマンド
+# ================================
+delete-player-usage: "&c使用法: /%command% <player>"
+delete-player-success: "&aプレイヤー '%player%' のデータを削除しました。"
+delete-player-not-exist: "&eプレイヤー '%player%' のデータは存在しませんでした。"
+
+# ================================
+# rewarddeleteall コマンド
+# ================================
+delete-all-warning: "&e警告: このコマンドは全てのプレイヤーデータを削除します。"
+delete-all-confirmation: "&e実行するには /%command% confirm と入力してください。"
+delete-all-success: "&a全てのプレイヤーデータを削除しました。"
+
+delete-all-failed: "&cデータの削除に失敗しました。"

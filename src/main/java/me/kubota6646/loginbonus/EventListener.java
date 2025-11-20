@@ -15,6 +15,8 @@ import org.bukkit.inventory.ItemStack;
 import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.scheduler.BukkitTask;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -46,8 +48,8 @@ public class EventListener implements Listener {
             plugin.getStorage().syncPlayerData(playerId);
         }
 
-        // 今日の日付を取得
-        String today = LocalDate.now().toString();
+        // 現在のリセット日付を取得
+        String today = plugin.getResetDate();
         currentDates.put(playerId, today);
 
         // 累積ログイン時間を取得 (デフォルト0.0)
@@ -97,7 +99,7 @@ public class EventListener implements Listener {
                 int currentRemainingSeconds = (int) Math.ceil(Math.max(currentRemaining, 0.0) * 60);
 
                 // 日付変更チェック
-                String currentDate = LocalDate.now().toString();
+                String currentDate = plugin.getResetDate();
                 if (!currentDate.equals(currentDates.get(playerId))) {
                     // 日付が変わったので、新しいカウントを開始
                     currentDates.put(playerId, currentDate);
@@ -177,7 +179,15 @@ public class EventListener implements Listener {
             // ストリークを計算
             String lastStreakDateStr = plugin.getStorage().getLastStreakDate(playerId);
             if (lastStreakDateStr != null) {
-                LocalDate lastStreakDate = LocalDate.parse(lastStreakDateStr);
+                LocalDate lastStreakDate;
+                // 日付時刻形式 "YYYY-MM-DD HH:mm" または日付のみ "YYYY-MM-DD" をサポート
+                if (lastStreakDateStr.length() > 10) {
+                    // 日付時刻形式の場合、日付部分のみを抽出
+                    lastStreakDate = LocalDate.parse(lastStreakDateStr.substring(0, 10));
+                } else {
+                    // 日付のみの形式
+                    lastStreakDate = LocalDate.parse(lastStreakDateStr);
+                }
                 LocalDate yesterday = LocalDate.now().minusDays(1);
                 if (lastStreakDate.equals(yesterday)) {
                     streak = plugin.getStorage().getStreak(playerId) + 1;
@@ -368,7 +378,7 @@ public class EventListener implements Listener {
                 int currentRemainingSeconds = (int) Math.ceil(Math.max(currentRemaining, 0.0) * 60);
 
                 // 日付変更チェック
-                String currentDate = LocalDate.now().toString();
+                String currentDate = plugin.getResetDate();
                 if (!currentDate.equals(currentDates.get(playerId))) {
                     // 日付が変わったので、新しいカウントを開始
                     currentDates.put(playerId, currentDate);
@@ -409,5 +419,16 @@ public class EventListener implements Listener {
         int minutes = totalSeconds / 60;
         int seconds = totalSeconds % 60;
         return String.format("%02d:%02d", minutes, seconds);
+    }
+
+    public void restartTrackingForNewDay() {
+        // オンラインの全プレイヤーに対して、トラッキングを再開
+        for (Player player : plugin.getServer().getOnlinePlayers()) {
+            UUID playerId = player.getUniqueId();
+            // 既存のトラッキングをキャンセル
+            cancelTasksForPlayer(playerId);
+            // 新しい日のトラッキングを開始
+            startTracking(player);
+        }
     }
 }
