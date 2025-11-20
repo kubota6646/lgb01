@@ -29,10 +29,12 @@ public record RewardDeleteAllCommand(Main plugin) implements CommandExecutor {
             plugin.savePlayerDataAsync();
             sender.sendMessage(plugin.getMessage("delete-all-success", "&a全てのプレイヤーデータを削除しました。"));
             
-            // オンラインの全プレイヤーのトラッキングをキャンセル
+            // オンラインの全プレイヤーのトラッキングをキャンセルして再開
             if (plugin.getEventListener() != null) {
                 for (Player player : plugin.getServer().getOnlinePlayers()) {
                     plugin.getEventListener().cancelTasksForPlayer(player.getUniqueId());
+                    // データ削除後、トラッキングを再開
+                    plugin.getEventListener().startTrackingForPlayer(player.getUniqueId());
                 }
             }
         } else {
